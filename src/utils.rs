@@ -1,4 +1,4 @@
-pub fn to_naf(mut x: usize) -> Vec<usize> {
+pub fn to_naf(mut x: i64) -> Vec<i64> {
     let mut z = vec![];
     while x > 0 {
         if x % 2 == 0 {
