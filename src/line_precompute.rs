@@ -14,7 +14,7 @@ fn line_double(point: G2Affine) -> LiearRes {
     let (x, y) = (point.x, point.y);
 
     // slope: alpha = 3 * x ^ 2 / (2 * y)
-    let alpha = x.square().mul(Fq::from(3)).div(y.mul(Fq::from(2)));
+    let alpha = x.square().mul(Fq2::from(3)).div(y.mul(Fq2::from(2)));
     // bias = y - alpha * x
     let bias = y - alpha * x;
 

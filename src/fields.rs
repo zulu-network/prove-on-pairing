@@ -9,4 +9,4 @@
 use ark_bn254::{Fq, Fq2};
 use ark_ff::Field;
 
-const beta: Fq2 = Fq2::new(Fq::ONE, Fq::from(9));
+// const beta: Fq2 = Fq2::new(Fq::ONE, Fq::from(9));
