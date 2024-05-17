@@ -16,7 +16,7 @@ use std::ops::Mul;
 pub struct Fq12Ext;
 
 impl Fq12Ext {
-    fn beta_pi_1() -> Vec<Fq2> {
+    pub fn beta_pi_1() -> Vec<Fq2> {
         let mut res = vec![];
         for i in 1..6 {
             // exp = i * ((module-1)/6)
@@ -31,7 +31,7 @@ impl Fq12Ext {
         res
     }
 
-    fn beta_pi_2() -> Vec<Fq2> {
+    pub fn beta_pi_2() -> Vec<Fq2> {
         let mut res = vec![];
         for i in 1..6 {
             // exp = i * ((module^2 -1)/6)
@@ -46,7 +46,7 @@ impl Fq12Ext {
         }
         res
     }
-    fn beta_pi_3() -> Vec<Fq2> {
+    pub fn beta_pi_3() -> Vec<Fq2> {
         let mut res = vec![];
         for i in 1..6 {
             // exp = i * ((module^2 -1)/6)

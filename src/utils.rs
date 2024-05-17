@@ -2,7 +2,7 @@ use ark_bn254::Fr;
 use num_bigint::BigUint;
 use num_traits::{FromPrimitive, ToPrimitive};
 
-fn biguint_to_naf(mut num: BigUint) -> Vec<i32> {
+pub fn biguint_to_naf(mut num: BigUint) -> Vec<i32> {
     let mut naf = Vec::new();
     let mut last_bit = 0;
 
@@ -17,7 +17,7 @@ fn biguint_to_naf(mut num: BigUint) -> Vec<i32> {
     naf
 }
 
-fn naf_to_biguint(naf: &[i32]) -> BigUint {
+pub fn naf_to_biguint(naf: &[i32]) -> BigUint {
     let mut val = BigUint::ZERO;
 
     for (i, digit) in naf.iter().enumerate() {
