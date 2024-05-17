@@ -1,6 +1,7 @@
 use crate::utils::to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, G1Affine, G2Affine};
 use ark_ff::Field;
+use num_bigint::BigUint;
 use std::ops::{Div, Mul, Neg};
 
 // stands for (alpha, bias)
@@ -98,10 +99,44 @@ fn cache_line_function(Q: G2Affine, e: i128, lamb: i128) {
 
 #[cfg(test)]
 mod test {
+    use ark_bn254::{Fq, Fq12, Fq2, Fq6, Fr, G1Affine};
+    use ark_ec::{AffineRepr, CurveGroup};
+    use ark_ff::Field;
+    use ark_std::start_timer;
+    use num_bigint::BigUint;
+    use num_traits::{FromPrimitive, One};
+    use std::str::FromStr;
+
     use super::*;
+    use crate::constant::{g1, g2, E};
+    use crate::{
+        fields::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
+        miller_loop_verify::line_evaluation,
+        optimal_ate::mul_line_base,
+        utils::to_naf,
+    };
 
     #[test]
     fn test_line_precomputation() {
-        // let
+        // assume we want to prove e(P1, Q1) = e(P2, Q2), namely e(P1, Q1) * e(P2, -Q2) = 1
+        // fixed point Q in G2, public known to verifier
+        let P1 = g1
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+        let P2 = g1.mul_bigint(BigUint::one().to_u64_digits()).into_affine();
+
+        let Q1 = g2.mul_bigint(BigUint::one().to_u64_digits()).into_affine();
+        let Q2 = g2
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+        let lamb = BigUint::from_str(
+            "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
+        ).unwrap();
+
+        let start = start_timer!(|| "start compute line precomputation");
+        // indexer (oracle) for fixed point Q
+        //
+        // let L1 = cache_line_function(Q1, E, lamb);
+        // let L2 = cache_line_function(Q2.neg(), E, lamb);
     }
 }

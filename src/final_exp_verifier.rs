@@ -1,3 +1,4 @@
+use ark_bn254::Fq12;
 use ark_ff::{Field, One};
 use ark_std::UniformRand;
 use num_bigint::BigUint;
@@ -5,7 +6,6 @@ use num_traits::{Num, ToPrimitive};
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
-use ark_bn254::Fq12;
 
 // refer table 3 of https://eprint.iacr.org/2009/457.pdf
 // a: Fp12 which is cubic residue
@@ -13,13 +13,7 @@ use ark_bn254::Fq12;
 // s: satisfying p^12 - 1 = 3^s * t
 // t: satisfying p^12 - 1 = 3^s * t
 // k: k = (t + 1) // 3
-fn tonelli_shanks_cubic(
-    a: Fq12,
-    c: Fq12,
-    s: u32,
-    t: BigUint,
-    k: BigUint,
-) -> ark_bn254::Fq12 {
+fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) -> ark_bn254::Fq12 {
     let mut r = a.pow(t.to_u64_digits());
     let e = 3_u32.pow(s - 1);
     let exp = 3_u32.pow(s) * &t;
@@ -58,6 +52,7 @@ fn tonelli_shanks_cubic(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::constant::MODULUS;
     use ark_bn254::Fq;
     use ark_ff::PrimeField;
     use ark_ff::{Field, One};
@@ -70,10 +65,7 @@ mod test {
 
     #[test]
     fn test_compute_c_wi() {
-        // Fq::MODULES
-        const MODULUS: &'static str =
-            "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
-
+        // 1. constant params
         let p = BigUint::from_str_radix(MODULUS, 16).unwrap();
         let r = BigUint::from_str(
             "21888242871839275222246405745257275088548364400416034343698204186575808495617",

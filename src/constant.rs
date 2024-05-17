@@ -31,6 +31,10 @@ pub const G2_GENERATOR_Y: Fq2 = Fq2::new(
 pub const g1: G1Affine = G1Affine::new_unchecked(G1_GENERATOR_X, G1_GENERATOR_Y);
 pub const g2: G2Affine = G2Affine::new_unchecked(G2_GENERATOR_X, G2_GENERATOR_Y);
 
+// constant modulus of Fq
+pub const MODULUS: &'static str =
+    "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
+
 // const X: &'static [u64] = &[4965661367192848881]. See more on: Config::X
 pub const X: Lazy<BigUint> = Lazy::new(|| BigUint::from_i128(4965661367192848881).unwrap());
 
@@ -39,3 +43,15 @@ pub const E: Lazy<BigUint> = Lazy::new(|| {
     BigUint::from_i8(6).unwrap() * BigUint::from_i128(4965661367192848881).unwrap()
         + BigUint::from_i8(2).unwrap()
 });
+
+// optimal lambda in miller loop, lambda
+
+pub const LAMBDA: Lazy<BigUint> =
+    Lazy::new(|| lambda(BigUint::from_i128(4965661367192848881).unwrap()));
+
+// lambdax = 6 * x + 2 + px - px^2 + px^3
+fn lambda(x: BigUint) -> BigUint {
+    let x1 = BigUint::from_i8(6).unwrap().mul(&x);
+    // let x2 = Config::X;
+    todo!()
+}
