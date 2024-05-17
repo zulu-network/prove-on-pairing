@@ -11,14 +11,14 @@ use ark_ff::Field;
 
 // const beta: Fq2 = Fq2::new(Fq::ONE, Fq::from(9));
 
-pub fn fq12_to_frobenius(field: Fq12) -> Fq12 {
+pub fn fq12_to_frobenius(q12: Fq12) -> Fq12 {
     todo!()
 }
 
-pub fn fq12_to_frobenius_p2(field: Fq12) -> Fq12 {
+pub fn fq12_to_frobenius_p2(q12: Fq12) -> Fq12 {
     todo!()
 }
 
-pub fn fq12_to_frobenius_p3(field: Fq12) -> Fq12 {
+pub fn fq12_to_frobenius_p3(q12: Fq12) -> Fq12 {
     todo!()
 }
