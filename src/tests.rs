@@ -7,7 +7,7 @@ mod tests {
 
     #[test]
     fn test_pairing_verify() {
-        let P1 = G1Affine::new_unchecked(x, y)
+        // let P1 = G1Affine::new_unchecked(x, y)
         let verify_res = Pairing::verify_pairings(eval_points, lines, e, c, c_inv, wi);
         assert_eq!(verify_res, Fq12::ONE);
     }
