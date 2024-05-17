@@ -6,7 +6,7 @@
 // return Fp2(self.x.additive_inverse(), self.y)
 // pub fn fq2_conjugate_of()
 
-use crate::constant::get_BETA;
+use crate::constant::BETA;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, FqConfig};
 use ark_ff::{BigInt, BigInteger, Field, MontConfig};
 use num_bigint::BigUint;
@@ -25,7 +25,7 @@ impl Fq12Ext {
             t.divn(6);
             t.muln(i);
             let exp = t;
-            let pi = get_BETA().pow(exp);
+            let pi = BETA.pow(exp);
             res.push(pi);
         }
         res
@@ -41,7 +41,7 @@ impl Fq12Ext {
             t.divn(6);
             t.muln(i);
             let exp = t;
-            let pi = get_BETA().pow(exp);
+            let pi = BETA.pow(exp);
             res.push(pi);
         }
         res
@@ -57,7 +57,7 @@ impl Fq12Ext {
             t.divn(6);
             t.muln(i);
             let exp = t;
-            let pi = get_BETA().pow(exp);
+            let pi = BETA.pow(exp);
             res.push(pi);
         }
         res
