@@ -1,4 +1,5 @@
 use ark_bn254::Fr;
+use num_bigint::BigUint;
 
 pub fn to_naf(mut x: i128) -> Vec<i8> {
     let mut z = vec![];
@@ -15,3 +16,5 @@ pub fn to_naf(mut x: i128) -> Vec<i8> {
     }
     return z;
 }
+
+pub fn px(x: BigUint) {}

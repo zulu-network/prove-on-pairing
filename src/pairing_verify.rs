@@ -79,4 +79,8 @@ impl Pairing {
         assert_eq!(f, Fq12::ONE);
         f
     }
+
+    pub fn compute_final_exp_witness(f: Fq12) {
+        // let (p, r, h, lamb, m) = px(x), rx(x), hx(x), lambdax(x), mx(x)
+    }
 }
