@@ -1,16 +1,14 @@
-use crate::utils::to_naf;
-use ark_bn254::g2::Config;
 use ark_bn254::{Bn254, Fq12, Fq2, Fq2Config, Fq6, G1Affine, G1Projective, G2Affine, G2Projective};
 use ark_ec::pairing::Pairing;
-use ark_ec::short_weierstrass::Projective;
-use ark_ec::AffineRepr;
+use ark_ec::{AffineRepr, CurveGroup};
 use ark_ff::{Field, Fp2ConfigWrapper, QuadExtField};
+use num_bigint::BigUint;
 use std::ops::{Add, Mul, Neg, Sub};
 
 pub fn line_func_add(
     r: G2Projective,
     p: G2Projective,
-    q: G2Projective,
+    q: G1Projective,
     r2: Fq2,
 ) -> (Fq2, Fq2, Fq2, G2Projective) {
     let r_t = r.z.square();
@@ -60,15 +58,71 @@ pub fn line_func_add(
     let mut a = t2 - t;
 
     let x = q.y;
-    let mut c = r_z.mul(q.y).double();
+    let mut c = r_z;
+    c.mul_assign_by_basefield(&q.y);
+    c = c.double();
 
     let mut b = L1.neg();
-    b = b.mul(q.x).double();
+    b.mul_assign_by_basefield(&q.x);
+    b = b.double();
 
     // abandon the convenience of projective coordinate, be consistent with verifier
     // 2 * z_r
     let aux_inv = r_z.double().inverse().unwrap();
 
+    let a = a.mul(aux_inv);
+    let b = b.mul(aux_inv);
+    let c = c.mul(aux_inv);
+
+    (a, b, c, r_out)
+}
+
+fn line_func_double(r: G2Projective, q: G1Projective) -> (Fq2, Fq2, Fq2, G2Projective) {
+    let r_t = r.z.square();
+
+    let A = r.x.square();
+    let B = r.y.square();
+    let C = B.square();
+
+    let mut D = r.x + B;
+    D = D.square();
+    D -= A;
+    D -= C;
+    D = D.double();
+
+    let E = A.double() + A;
+    let F = E.square();
+
+    // C^8
+    let C8 = C.double().double().double();
+
+    let r_x = F - D.double();
+    let r_y = E * (D - r_x) - C8;
+
+    // (y+z)*(y+z) - (y*y) - (z*z) = 2*y*z
+    let r_z = (r.y + r.z).square() - B - r_t;
+
+    assert_eq!(r_z, r.y * r.z.double());
+
+    let r_out = G2Projective::new(r_x, r_y, r_z);
+    assert!(r_out.into_affine().is_on_curve());
+
+    let mut a = r.x + E;
+    a = a.square();
+    a -= (A + F + B.double().double());
+
+    let mut t = E * r_t;
+    t = t.double();
+    let mut b = t.neg();
+    b.mul_assign_by_basefield(&q.x);
+
+    let mut c = r_z * r_t;
+    c = c.double();
+    c.mul_assign_by_basefield(&q.y);
+
+    // abandon the convenience of projective coordinate, be consistant with verifier
+    // 2 * z_r * z_t^2
+    let mut aux_inv = r_t.mul(r_z).double().inverse().unwrap();
     let a = a.mul(aux_inv);
     let b = b.mul(aux_inv);
     let c = c.mul(aux_inv);
@@ -103,21 +157,26 @@ pub fn mul_line_base(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
     r.mul(fl)
 }
 
-pub fn miller(Q: G2Affine, P: G1Affine) {
-    let f = Fq12::new(Fq6::ZERO, Fq6::ONE);
-
-    let T = Q.clone();
-
-    let Qp = Q.y.square();
-
-    // 6x + 2 in NAF
-    // let mut naf_6xp2 = to_naf();
-    // naf_6xp2.reverse();
-    // naf_6xp2.remove(0);
-    //
-    // let mut f_list = vec![];
-    //
-    // naf_6xp2.iter().enumerate().map(|a| {
-    //     let fi = f.square();
-    // });
-}
+// pub fn miller(p: G1Projective, q: G2Projective) {
+//     let f = Fq12::new(Fq6::ZERO, Fq6::ONE);
+//
+//     let Q = q.into_affine();
+//
+//     let P = p.into_affine();
+//
+//     let f = Fq12::new(Fq6::ZERO, Fq6::ONE);
+//     let T = Q;
+//
+//     let Qp = Q.y.square();
+//     // 6x + 2 in NAF
+//     let mut naf_6xp2 = BigUint::ZERO;
+//
+//     // naf_6xp2.reverse();
+//     // naf_6xp2.remove(0);
+//
+//     // let mut f_list = vec![];
+//     //
+//     // naf_6xp2.iter().enumerate().map(|a| {
+//     //     let fi = f.square();
+//     // });
+// }

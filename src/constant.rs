@@ -34,7 +34,7 @@ pub const g2: G2Affine = G2Affine::new_unchecked(G2_GENERATOR_X, G2_GENERATOR_Y)
 // const X: &'static [u64] = &[4965661367192848881]. See more on: Config::X
 pub const X: Lazy<BigUint> = Lazy::new(|| BigUint::from_i128(4965661367192848881).unwrap());
 
-// // e = 6x + 2;
+// e = 6X + 2;
 pub const E: Lazy<BigUint> = Lazy::new(|| {
     BigUint::from_i8(6).unwrap() * BigUint::from_i128(4965661367192848881).unwrap()
         + BigUint::from_i8(2).unwrap()
