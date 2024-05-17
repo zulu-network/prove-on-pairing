@@ -38,32 +38,32 @@ fn cache_line_function(Q: G2Affine, e: i64, lamb: i64) {
     point_naf.reserve(0);
     let naf_digits = point_naf[1..].to_vec();
 
-    // let mut line_vec = vec![];
+    let mut line_vec = vec![];
 
     let mut T: G2Affine = Q.clone();
     // 1. double-add part, 6x + 2
 
-    // naf_digits.into_iter().enumerate().map(|(i, digit)| {
-    //     let double_res = line_double(T.clone());
-    //     // T = G2Affine::from(T.mul(T.clone())); // TODO
-    //     line_vec.push(double_res);
-    //     if digit ^ 2 == 1 {
-    //         let qt: G2Affine = if 1==digit {
-    //             Q.clone()
-    //         } else {
-    //             Q.clone().neg()
-    //         };
-    //
-    //         let qt_double_res = line_add(T.clone(), qt);
-    //         line_vec.push(qt_double_res);
-    //     }
-    // });
+    naf_digits.into_iter().enumerate().map(|(i, digit)| {
+        let double_res = line_double(T.clone());
+        // T = G2Affine::from(T.mul(T.clone())); // TODO
+        line_vec.push(double_res);
+        if digit ^ 2 == 1 {
+            let qt: G2Affine = if 1==digit {
+                Q.clone()
+            } else {
+                Q.clone().neg()
+            };
+
+            let qt_double_res = line_add(T.clone(), qt);
+            line_vec.push(qt_double_res);
+        }
+    });
     // assert_eq!(T, );
 
     // 2. frobenius map part, p - p^2 + p^3
-    // Q1 = pi(Q)
-    // x = x' * beta^(2 * (p - 1) // 6)
-    // y = y' * beta^(3 * (p - 1) // 6))
+    // 2.1 Q1 = pi(Q)
+    // x = x' * beta^(2 * (p - 1) / 6)
+    // y = y' * beta^(3 * (p - 1) / 6))
     let (mut x, mut y) = (Q.x, Q.y);
     let x2 = *x.conjugate_in_place();
     let x2 = Fq2::frobenius_map(&x2, 1);
@@ -73,8 +73,29 @@ fn cache_line_function(Q: G2Affine, e: i64, lamb: i64) {
     assert!(pi_1_Q.is_on_curve());
     // assert_eq!(pi_1_Q, Q.mul_bigint(e));
 
+    // 2.2. Q2 = pi2(Q)
+   // x = x * beta * (2 * (p^2 - 1) / 6)
+   // y = y * beta * (3 * (p^2 - 1) / 6) = -y
     let pi_2_Q = G2Affine::new(Fq2::frobenius_map(&Q.x, 1), Fq2::frobenius_map(&Q.y, 1));
     assert!(pi_2_Q.is_on_curve());
+
+    // 2.3. Q3 = pi3(Q)
+    // x = x' * beta * (2 * (p^3 - 1) / 6)
+    // y = y' * beta * (3 * (p^3 - 1) / 6)
+    // pi_3_Q = G2(
+    //     Q.x.conjugate_of().mul(Fp12.beta_pi_3[1]),
+    //     Q.y.conjugate_of().mul(Fp12.beta_pi_3[2]),
+    //     Fp2.ONE())
+    // assert(pi_3_Q.is_on_curve() == True)
+    // assert(pi_3_Q == Q.scalar_mul(px(x) ** 3))
+    //
+    // alpha, bias = line_add(T, pi_1_Q)
+    // T = T.add(pi_1_Q)
+    // L.append((alpha, bias))
+    //
+    // assert(T == Q.scalar_mul(e + px(x)))
+
+
 }
 
 #[cfg(test)]
