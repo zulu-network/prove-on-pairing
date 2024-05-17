@@ -48,7 +48,7 @@ fn cache_line_function(Q: G2Affine, e: i128, lamb: i128) {
         // T = G2Affine::from(T.mul(T.clone())); // TODO
         line_vec.push(double_res);
         if digit ^ 2 == 1 {
-            let qt: G2Affine = if 1==digit {
+            let qt: G2Affine = if 1 == digit {
                 Q.clone()
             } else {
                 Q.clone().neg()
@@ -74,8 +74,8 @@ fn cache_line_function(Q: G2Affine, e: i128, lamb: i128) {
     // assert_eq!(pi_1_Q, Q.mul_bigint(e));
 
     // 2.2. Q2 = pi2(Q)
-   // x = x * beta * (2 * (p^2 - 1) / 6)
-   // y = y * beta * (3 * (p^2 - 1) / 6) = -y
+    // x = x * beta * (2 * (p^2 - 1) / 6)
+    // y = y * beta * (3 * (p^2 - 1) / 6) = -y
     let pi_2_Q = G2Affine::new(Fq2::frobenius_map(&Q.x, 1), Fq2::frobenius_map(&Q.y, 1));
     assert!(pi_2_Q.is_on_curve());
 
@@ -94,8 +94,6 @@ fn cache_line_function(Q: G2Affine, e: i128, lamb: i128) {
     // L.append((alpha, bias))
     //
     // assert(T == Q.scalar_mul(e + px(x)))
-
-
 }
 
 #[cfg(test)]

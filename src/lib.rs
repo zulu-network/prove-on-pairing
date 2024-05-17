@@ -1,3 +1,4 @@
+pub mod constant;
 mod fields;
 pub mod line_precompute;
 pub mod miller_loop_verify;
