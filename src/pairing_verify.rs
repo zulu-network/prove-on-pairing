@@ -6,7 +6,7 @@ use crate::{
     fields::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
     miller_loop_verify::line_evaluation,
     optimal_ate::mul_line_base,
-    utils::scalar_to_naf,
+    utils::to_naf,
 };
 
 pub struct Pairing;
@@ -15,7 +15,7 @@ impl Pairing {
     pub fn verify_pairings(
         eval_points: Vec<G1Affine>,
         lines: &[Vec<(Fq2, Fq2)>; 2],
-        e: Fr,
+        e: i128,
         c: Fq12,
         c_inv: Fq12,
         wi: Fq12,
@@ -26,7 +26,7 @@ impl Pairing {
         let mut lc = 0_usize;
         // let mut f = Fq12::ONE;
         let mut f = c_inv;
-        let mut naf_digits = scalar_to_naf(e);
+        let mut naf_digits = to_naf(e);
         naf_digits.reverse();
         naf_digits.remove(0);
         for digit in naf_digits.into_iter() {
