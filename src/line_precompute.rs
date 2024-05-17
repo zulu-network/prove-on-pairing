@@ -33,7 +33,7 @@ fn line_add(point: G2Affine, other: G2Affine) -> LiearRes {
 
 // TODO: need redefine the type of params(e)
 // cache line line_function for [6x + 2 + p - p^2 + p^3]Q
-fn cache_line_function(Q: G2Affine, e: i64, lamb: i64) {
+fn cache_line_function(Q: G2Affine, e: i128, lamb: i128) {
     let mut point_naf = to_naf(e);
     point_naf.reserve(0);
     let naf_digits = point_naf[1..].to_vec();
