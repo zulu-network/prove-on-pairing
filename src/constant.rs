@@ -2,6 +2,7 @@ use ark_bn254::{Config, Fq, Fq2, FqConfig, G1Affine, G2Affine};
 use ark_ec::bn::BnConfig;
 use ark_ff::MontFp;
 use num_bigint::{BigInt, BigUint};
+use num_traits::FromPrimitive;
 use once_cell::sync::Lazy;
 use std::clone::Clone;
 use std::ops::{Add, Mul};
@@ -31,6 +32,10 @@ pub const g1: G1Affine = G1Affine::new_unchecked(G1_GENERATOR_X, G1_GENERATOR_Y)
 pub const g2: G2Affine = G2Affine::new_unchecked(G2_GENERATOR_X, G2_GENERATOR_Y);
 
 // const X: &'static [u64] = &[4965661367192848881]. See more on: Config::X
-// pub const X: BigUint = BigUint::from(4965661367192848881);
+pub const X: Lazy<BigUint> = Lazy::new(|| BigUint::from_i128(4965661367192848881).unwrap());
+
 // // e = 6x + 2;
-// pub const E: Lazy<BigUint> = Lazy::new(||  BigUint::from(6).mul(X.clone()).add(2));
+pub const E: Lazy<BigUint> = Lazy::new(|| {
+    BigUint::from_i8(6).unwrap() * BigUint::from_i128(4965661367192848881).unwrap()
+        + BigUint::from_i8(2).unwrap()
+});
