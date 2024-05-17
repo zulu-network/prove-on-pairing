@@ -11,6 +11,7 @@ mod tests {
 
     #[test]
     fn test_pairing_verify() {
+        // P1 = g1.scalar_mul(3)
         let P1 = g1.mul_bigint(BigInt::<4>::new([3, 0, 0, 0])).into_affine();
         let P2 = g1.mul_bigint(BigInt::<4>::one()).into_affine();
 

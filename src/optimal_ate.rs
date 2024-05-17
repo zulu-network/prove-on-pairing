@@ -1,11 +1,18 @@
 use crate::utils::to_naf;
-use ark_bn254::{Bn254, Fq12, Fq2, Fq6, G1Affine, G2Affine, G2Projective};
+use ark_bn254::g2::Config;
+use ark_bn254::{Bn254, Fq12, Fq2, Fq2Config, Fq6, G1Affine, G1Projective, G2Affine, G2Projective};
 use ark_ec::pairing::Pairing;
+use ark_ec::short_weierstrass::Projective;
 use ark_ec::AffineRepr;
-use ark_ff::Field;
+use ark_ff::{Field, Fp2ConfigWrapper, QuadExtField};
 use std::ops::{Add, Mul, Neg, Sub};
 
-pub fn line_func_add(r: G2Projective, p: G2Projective, q: G2Projective, r2: Fq2) -> () {
+pub fn line_func_add(
+    r: G2Projective,
+    p: G2Projective,
+    q: G2Projective,
+    r2: Fq2,
+) -> (Fq2, Fq2, Fq2, G2Projective) {
     let r_t = r.z.square();
     let B = p.x * r_t;
     let mut D = p.y + r.z;
@@ -52,10 +59,11 @@ pub fn line_func_add(r: G2Projective, p: G2Projective, q: G2Projective, r2: Fq2)
 
     let mut a = t2 - t;
 
-    let mut c = r_z.mul_scalar(q.y).double();
+    let x = q.y;
+    let mut c = r_z.mul(q.y).double();
 
     let mut b = L1.neg();
-    b = b.mul_scalar(q.x).double();
+    b = b.mul(q.x).double();
 
     // abandon the convenience of projective coordinate, be consistent with verifier
     // 2 * z_r
@@ -103,13 +111,13 @@ pub fn miller(Q: G2Affine, P: G1Affine) {
     let Qp = Q.y.square();
 
     // 6x + 2 in NAF
-    let mut naf_6xp2 = to_naf();
-    naf_6xp2.reverse();
-    naf_6xp2.remove(0);
-
-    let mut f_list = vec![];
-
-    naf_6xp2.iter().enumerate().map(|a| {
-        let fi = f.square();
-    });
+    // let mut naf_6xp2 = to_naf();
+    // naf_6xp2.reverse();
+    // naf_6xp2.remove(0);
+    //
+    // let mut f_list = vec![];
+    //
+    // naf_6xp2.iter().enumerate().map(|a| {
+    //     let fi = f.square();
+    // });
 }
