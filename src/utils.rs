@@ -17,5 +17,5 @@ pub fn to_naf(mut x: i64) -> Vec<i8> {
 }
 
 pub fn scalar_to_naf(mut x: Fr) -> Vec<i8> {
-    vec![]
+    todo!()
 }
