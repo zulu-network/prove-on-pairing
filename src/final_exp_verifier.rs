@@ -13,7 +13,7 @@ use std::str::FromStr;
 // s: satisfying p^12 - 1 = 3^s * t
 // t: satisfying p^12 - 1 = 3^s * t
 // k: k = (t + 1) // 3
-fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) -> ark_bn254::Fq12 {
+pub fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) -> ark_bn254::Fq12 {
     let mut r = a.pow(t.to_u64_digits());
     let e = 3_u32.pow(s - 1);
     let exp = 3_u32.pow(s) * &t;
