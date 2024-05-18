@@ -35,8 +35,9 @@ pub const X: Lazy<BigUint> = Lazy::new(|| BigUint::from_i128(4965661367192848881
 
 // e = 6X + 2;
 pub const E: Lazy<BigUint> = Lazy::new(|| {
-    BigUint::from_i8(6).unwrap() * BigUint::from_i128(4965661367192848881).unwrap()
-        + BigUint::from_i8(2).unwrap()
+    let x6 = BigUint::from_i8(6).unwrap() * BigUint::from_i128(4965661367192848881).unwrap();
+    // 6x + 2
+    x6 + BigUint::from_i8(2).unwrap()
 });
 
 // optimal lambda in miller loop, lambda
@@ -72,6 +73,13 @@ mod test {
     fn test_modulus() {
         let actual = BigUint::from(Fq::MODULUS);
         let expect = BigUint::from_str_radix(MODULUS, 16).unwrap();
+        assert_eq!(actual, expect);
+    }
+
+    #[test]
+    fn test_e() {
+        let actual = E.clone();
+        let expect = BigUint::from_str("29793968203157093288").unwrap();
         assert_eq!(actual, expect);
     }
 }
