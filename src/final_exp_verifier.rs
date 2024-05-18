@@ -55,7 +55,7 @@ pub fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) ->
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::constant::MODULUS;
+    use crate::constant::{MODULUS, MODULUS_STR};
     use ark_bn254::Fq;
     use ark_ff::PrimeField;
     use ark_ff::{Field, One};
@@ -72,7 +72,7 @@ mod test {
     #[test]
     fn test_compute_c_wi() {
         // 1. constant params
-        let p = BigUint::from_str_radix(MODULUS, 16).unwrap();
+        let p = MODULUS;
         let r = BigUint::from_str(
             "21888242871839275222246405745257275088548364400416034343698204186575808495617",
         )

@@ -6,11 +6,13 @@
 // return Fp2(self.x.additive_inverse(), self.y)
 // pub fn fq2_conjugate_of()
 
+use crate::constant;
 use crate::constant::BETA;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, FqConfig};
 use ark_ff::{BigInt, BigInteger, Field, MontConfig};
 use num_bigint::BigUint;
-use std::ops::Mul;
+use num_traits::{FromPrimitive, One, Pow};
+use std::ops::{DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 // const beta: Fq2 = Fq2::new(Fq::ONE, Fq::from(9));
 pub struct Fq12Ext;
@@ -20,12 +22,12 @@ impl Fq12Ext {
         let mut res = vec![];
         for i in 1..6 {
             // exp = i * ((module-1)/6)
-            let mut t = FqConfig::MODULUS;
-            t.sub_with_borrow(&BigInt::one());
-            t.divn(6);
-            t.muln(i);
+            let mut t = constant::MODULUS.clone();
+            t.sub_assign(BigUint::one());
+            t.div_assign(BigUint::from_i32(6).unwrap());
+            t.mul_assign(BigUint::from_i32(i).unwrap());
             let exp = t;
-            let pi = BETA.pow(exp);
+            let pi = BETA.pow(exp.to_u64_digits());
             res.push(pi);
         }
         res
@@ -35,13 +37,13 @@ impl Fq12Ext {
         let mut res = vec![];
         for i in 1..6 {
             // exp = i * ((module^2 -1)/6)
-            let mut t = FqConfig::MODULUS;
-            // todo: add module's pow t= t^2;
-            t.sub_with_borrow(&BigInt::one());
-            t.divn(6);
-            t.muln(i);
+            let mut t = constant::MODULUS.clone();
+            t = t.pow(2_u32);
+            t.sub_assign(BigUint::one());
+            t.div_assign(BigUint::from_i32(6).unwrap());
+            t.mul_assign(BigUint::from_i32(i).unwrap());
             let exp = t;
-            let pi = BETA.pow(exp);
+            let pi = BETA.pow(exp.to_u64_digits());
             res.push(pi);
         }
         res
@@ -49,15 +51,14 @@ impl Fq12Ext {
     pub fn beta_pi_3() -> Vec<Fq2> {
         let mut res = vec![];
         for i in 1..6 {
-            // exp = i * ((module^2 -1)/6)
-            let mut a = FqConfig::MODULUS;
-            let mut t = FqConfig::MODULUS;
-            // todo: add module's pow t=t^2;
-            t.sub_with_borrow(&BigInt::one());
-            t.divn(6);
-            t.muln(i);
+            // exp = i * ((module^3 -1)/6)
+            let mut t = constant::MODULUS.clone();
+            t = t.pow(3_u32);
+            t.sub_assign(BigUint::one());
+            t.div_assign(BigUint::from_i32(6).unwrap());
+            t.mul_assign(BigUint::from_i32(i).unwrap());
             let exp = t;
-            let pi = BETA.pow(exp);
+            let pi = BETA.pow(exp.to_u64_digits());
             res.push(pi);
         }
         res
@@ -117,6 +118,16 @@ mod test {
 
     #[test]
     fn test_beta_pi() {
-        println!("beta_pi_1: {:?}", Fq12Ext::beta_pi_1());
+        for x in Fq12Ext::beta_pi_1() {
+            println!("beta_pi_1: {:?}", x.to_string());
+        }
+        println!("");
+        for x in Fq12Ext::beta_pi_2() {
+            println!("beta_pi_1: {:?}", x.to_string());
+        }
+        println!("");
+        for x in Fq12Ext::beta_pi_3() {
+            println!("beta_pi_1: {:?}", x.to_string());
+        }
     }
 }
