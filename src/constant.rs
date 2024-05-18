@@ -1,6 +1,6 @@
 use ark_bn254::{Config, Fq, Fq2, FqConfig, G1Affine, G2Affine};
 use ark_ec::bn::BnConfig;
-use ark_ff::{MontFp, PrimeField};
+use ark_ff::{Field, MontFp, PrimeField};
 use num_bigint::{BigInt, BigUint};
 use num_traits::{FromPrimitive, Num};
 use once_cell::sync::Lazy;
@@ -8,7 +8,7 @@ use std::clone::Clone;
 use std::ops::{Add, Mul, Sub};
 use std::str::FromStr;
 
-pub static BETA: Lazy<Fq2> = Lazy::new(|| Fq2::new(1.into(), Fq::from(9)));
+pub static BETA: Lazy<Fq2> = Lazy::new(|| Fq2::new(Fq::from(9), Fq::ONE));
 
 pub const G1_GENERATOR_X: Fq =
     MontFp!("19491323635986486980056165026003970884581302300479364565163758691834883767296");
@@ -81,5 +81,11 @@ mod test {
         let actual = E.clone();
         let expect = BigUint::from_str("29793968203157093288").unwrap();
         assert_eq!(actual, expect);
+    }
+
+    #[test]
+    fn test_beta() {
+        // passed
+        println!("Beta: {:?}", BETA.clone());
     }
 }

@@ -60,7 +60,7 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
         line_vec.push(double_res);
 
         T = T.double();
-        let digtil_pow2 = digit* digit;
+        let digtil_pow2 = digit * digit;
         println!("digit: {:?}", digit);
 
         println!("digit_sqrt: {:?}", digtil_pow2);
@@ -83,15 +83,15 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
         //     // 2.1 Q1 = pi(Q)
         //     // x = x' * beta^(2 * (p - 1) / 6)
         //     // y = y' * beta^(3 * (p - 1) / 6))
-            let (mut x, mut y) = (Q.x, Q.y);
+        let (mut x, mut y) = (Q.x, Q.y);
 
-            let pi_1_Q = G2Projective::new(
-                x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
-                y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
-                Fq2::ONE,
-            );
-            // assert!(pi_1_Q.into_affine().is_on_curve());
-            // assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(e.clone()));
+        let pi_1_Q = G2Projective::new(
+            x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
+            y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
+            Fq2::ONE,
+        );
+        // assert!(pi_1_Q.into_affine().is_on_curve());
+        // assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(e.clone()));
 
         //     // 2.2. Q2 = pi2(Q)
         //     // x = x * beta * (2 * (p^2 - 1) / 6)

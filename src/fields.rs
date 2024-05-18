@@ -110,3 +110,13 @@ pub fn fq12_to_frobenius_p3(mut q12: Fq12) -> Fq12 {
 
     Fq12::new(Fq6::new(e1_x, e1_y, e1_z), Fq6::new(e2_x, e2_y, e2_z))
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_beta_pi() {
+        println!("beta_pi_1: {:?}", Fq12Ext::beta_pi_1());
+    }
+}
