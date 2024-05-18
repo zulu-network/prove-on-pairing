@@ -109,7 +109,7 @@ fn line_func_double(r: G2Projective, q: G1Projective) -> (Fq2, Fq2, Fq2, G2Proje
 
     let mut a = r.x + E;
     a = a.square();
-    a -= (A + F + B.double().double());
+    a -= A + F + B.double().double();
 
     let mut t = E * r_t;
     t = t.double();
