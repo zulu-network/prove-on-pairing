@@ -157,26 +157,28 @@ pub fn mul_line_base(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
     r.mul(fl)
 }
 
-// pub fn miller(p: G1Projective, q: G2Projective) {
-//     let f = Fq12::new(Fq6::ZERO, Fq6::ONE);
-//
-//     let Q = q.into_affine();
-//
-//     let P = p.into_affine();
-//
-//     let f = Fq12::new(Fq6::ZERO, Fq6::ONE);
-//     let T = Q;
-//
-//     let Qp = Q.y.square();
-//     // 6x + 2 in NAF
-//     let mut naf_6xp2 = BigUint::ZERO;
-//
-//     // naf_6xp2.reverse();
-//     // naf_6xp2.remove(0);
-//
-//     // let mut f_list = vec![];
-//     //
-//     // naf_6xp2.iter().enumerate().map(|a| {
-//     //     let fi = f.square();
-//     // });
-// }
+#[cfg(test)]
+mod test {
+    use crate::constant::{g1, g2};
+    use ark_bn254::{Bn254, G1Affine, G2Affine};
+    use ark_ec::pairing::Pairing;
+    use ark_ec::{AffineRepr, CurveGroup};
+    use num_bigint::BigUint;
+    use num_traits::FromPrimitive;
+
+    #[test]
+    fn test_miller_loop() {
+        let Q = g2
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+        let P = g1
+            .mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits())
+            .into_affine();
+        let actual = Bn254::miller_loop(
+            <G1Affine as Into<<Bn254 as Pairing>::G1Prepared>>::into(P),
+            <G2Affine as Into<<Bn254 as Pairing>::G2Prepared>>::into(Q),
+        );
+
+        println!("actual: {:?}", actual.0.to_string());
+    }
+}

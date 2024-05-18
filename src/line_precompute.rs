@@ -12,9 +12,6 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 type LiearRes = (Fq2, Fq2);
 
 fn line_double(point: &G2Affine) -> LiearRes {
-    // T = T.force_affine()
-    // assert(T.z == T.one_element())
-    // x, y = T.x, T.y
     let (x, y) = (point.x, point.y);
 
     // slope: alpha = 3 * x ^ 2 / (2 * y)
