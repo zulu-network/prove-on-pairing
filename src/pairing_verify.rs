@@ -153,7 +153,10 @@ impl Pairing {
 
     // Input:
     //      f: output of a Miller loop
-    // Output c and wi, satisfying c^lambda = f * wi
+    // Output:
+    //      c and wi,
+    //      satisfying c^lambda = f * wi
+    //
     // Algorithm 5 of "On Proving Pairings"(https://eprint.iacr.org/2024/640.pdf)
     fn compute_lambda_residues(f: ark_bn254::Fq12) -> (ark_bn254::Fq12, ark_bn254::Fq12) {
         let p = BigUint::from_str(MODULUS).unwrap();
