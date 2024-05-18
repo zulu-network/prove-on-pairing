@@ -6,15 +6,12 @@ use ark_ec::{AffineRepr, CurveGroup, Group};
 use ark_ff::{Field, PrimeField};
 use num_bigint::BigUint;
 use num_traits::Zero;
-use std::ops::{Add, Div, Mul, Neg};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 // stands for (alpha, bias)
 type LiearRes = (Fq2, Fq2);
 
 fn line_double(point: &G2Affine) -> LiearRes {
-    // T = T.force_affine()
-    // assert(T.z == T.one_element())
-    // x, y = T.x, T.y
     let (x, y) = (point.x, point.y);
 
     // slope: alpha = 3 * x ^ 2 / (2 * y)
@@ -44,7 +41,6 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     let mut naf_digits = biguint_to_naf(e.clone());
     naf_digits.reverse();
     naf_digits.remove(0);
-    println!("\n passed: naf_digits: {:?}", naf_digits);
 
     let mut line_vec = vec![];
 
@@ -53,24 +49,16 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     // 1. double-add part, 6x + 2
     naf_digits.iter().enumerate().for_each(|(i, digit)| {
         let double_res = line_double(&T.into_affine());
-        println!("\n round_{i}");
-        println!("T:{:?}", T.into_affine());
-        println!("alpha:{:?}", double_res.0.to_string());
-        println!("bias:{:?}", double_res.1.to_string());
         line_vec.push(double_res);
 
         T = T.double();
         let digtil_pow2 = digit * digit;
-        println!("digit: {:?}", digit);
-
-        println!("digit_sqrt: {:?}", digtil_pow2);
         if digtil_pow2 == 1 {
             let qt = if 1 == *digit {
                 Q.clone()
             } else {
                 Q.clone().neg()
             };
-            println!("qt: {:?}", qt.into_affine());
 
             let qt_double_res = line_add(&T.into_affine(), &qt.into_affine());
             T = T.add(qt);
@@ -78,76 +66,87 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
         }
     });
     assert_eq!(T, Q.into_affine().mul_bigint(e.to_u64_digits()));
-    {
-        //     // 2. frobenius map part, p - p^2 + p^3
-        //     // 2.1 Q1 = pi(Q)
-        //     // x = x' * beta^(2 * (p - 1) / 6)
-        //     // y = y' * beta^(3 * (p - 1) / 6))
-        let (mut x, mut y) = (Q.x, Q.y);
 
-        let pi_1_Q = G2Projective::new(
-            x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
-            y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
-            Fq2::ONE,
-        );
-        // assert!(pi_1_Q.into_affine().is_on_curve());
-        // assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(e.clone()));
+    // 2. frobenius map part, p - p^2 + p^3
+    // 2.1 Q1 = pi(Q)
+    // x = x' * beta^(2 * (p - 1) / 6)
+    // y = y' * beta^(3 * (p - 1) / 6))
+    let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
-        //     // 2.2. Q2 = pi2(Q)
-        //     // x = x * beta * (2 * (p^2 - 1) / 6)
-        //     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
-        //     let (mut x, mut y) = (Q.x, Q.y);
-        //     let pi_2_Q = G2Projective::new(
-        //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_2()[1]),
-        //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_2()[2]),
-        //         Fq2::ONE,
-        //     );
-        //     // assert!(pi_2_Q.into_affine().is_on_curve());
-        //     // assert_eq!(
-        //     //     pi_2_Q,
-        //     //     Q.mul_bigint(&BigUint::from(Fq::MODULUS).pow(2).to_u64_digits())
-        //     // );
-        //
-        //     // 2.3. Q3 = pi3(Q)
-        //     // x = x' * beta * (2 * (p^3 - 1) / 6)
-        //     // y = y' * beta * (3 * (p^3 - 1) / 6)
-        //     let (mut x, mut y) = (Q.x, Q.y);
-        //     let pi_3_Q = G2Projective::new(
-        //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[1]),
-        //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
-        //         Fq2::ONE,
-        //     );
-        //     // assert!(pi_3_Q.into_affine().is_on_curve());
-        //     // assert_eq!(pi_3_Q, Q.mul_bigint(BigUint::from(Fq::MODULUS).pow(3)));
-        //
-        //     let line_pi_1 = line_add(&T.into_affine(), &pi_1_Q.into_affine());
-        //     T = T.add(pi_1_Q);
-        //     line_vec.push(line_pi_1);
-        //     // assert_eq!(T, Q.mul_bigint(BigUint::from(Fq::MODULUS).add(E)));
-        //
-        //     let line_pi_2 = line_add(&T.into_affine(), &pi_2_Q.into_affine());
-        //     T = T.add(pi_2_Q.neg());
-        //     line_vec.push(line_pi_2);
-        //
-        //     // k = p - p^2 + e
-        //     let k = BigUint::from(Fq::MODULUS) - BigUint::from(Fq::MODULUS).pow(2);
-        //     let k = k + e;
-        //     // assert_eq!(T, Q.mul_bigint(if k.gt(BigUint::ZERO){
-        //     //     k
-        //     // }else {
-        //     // TODO
-        //     //     // rx(x) - (-k % rx(x))
-        //     // } ));
-        //
-        //     let line_i = line_add(&T.into_affine(), &pi_3_Q.into_affine());
-        //     let T = T.add(pi_3_Q);
-        //     line_vec.push(line_i);
-        //
-        //     // assert
-        //     // assert_eq!(T, Q.mul_bigint(LAMBDA));
-        //     // assert!(T.into_affine().is_on_curve());
-        //     // assert!(line_i.0.is_zero());
-    }
+    let pi_1_Q = G2Projective::new(
+        x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
+        y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
+        Fq2::ONE,
+    );
+    assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(MODULUS.to_u64_digits()));
+
+    // 2.2. Q2 = pi2(Q)
+    // x = x * beta * (2 * (p^2 - 1) / 6)
+    // y = y * beta * (3 * (p^2 - 1) / 6) = -y
+    let (mut x, mut y) = (Q.x, Q.y);
+    let pi_2_Q = G2Projective::new(
+        x.mul(Fq12Ext::beta_pi_2()[1]),
+        y.mul(Fq12Ext::beta_pi_2()[2]),
+        Fq2::ONE,
+    );
+    assert_eq!(
+        pi_2_Q,
+        Q.into_affine().mul_bigint(MODULUS.pow(2).to_u64_digits())
+    );
+
+    // 2.3. Q3 = pi3(Q)
+    // x = x' * beta * (2 * (p^3 - 1) / 6)
+    // y = y' * beta * (3 * (p^3 - 1) / 6)
+    let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
+
+    let pi_3_Q = G2Projective::new(
+        x.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[1]),
+        y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
+        Fq2::ONE,
+    );
+    assert!(pi_3_Q.into_affine().is_on_curve());
+    assert_eq!(
+        pi_3_Q,
+        Q.into_affine().mul_bigint(MODULUS.pow(3).to_u64_digits())
+    );
+
+    let line_pi_1 = line_add(&T.into_affine(), &pi_1_Q.into_affine());
+    T = T.add(pi_1_Q);
+    line_vec.push(line_pi_1);
+    assert_eq!(
+        T,
+        Q.into_affine()
+            .mul_bigint(E.clone().add(MODULUS.clone()).to_u64_digits())
+    );
+
+    let neg_pi_2_Q = pi_2_Q.neg();
+
+    let line_pi_2 = line_add(&T.into_affine(), &neg_pi_2_Q.into_affine());
+    T = T.add(neg_pi_2_Q);
+
+    line_vec.push(line_pi_2);
+
+    // TODO: Move this outersides
+    //    k = e + px(x) - px(x) ** 2
+    //     assert(T == Q.scalar_mul(k if k > 0 else rx(x) - (-k % rx(x))))
+    // k = p - p^2 + e
+    // let k = MODULUS.clone().add(E.clone()).sub(MODULUS.clone().pow(2)) ;
+    // let k = k + e;
+    // assert_eq!(T, Q.mul_bigint(if k.gt(BigUint::ZERO){
+    //     k
+    // }else {
+    // TODO
+    //     // rx(x) - (-k % rx(x))
+    // } ));
+
+    let line_pi_3 = (Fq2::ZERO, T.x.mul(T.z.inverse().unwrap().square()));
+    T = T.add(pi_3_Q);
+    line_vec.push(line_pi_3);
+
+    assert!(line_pi_3.0.is_zero());
+    assert!(T.into_affine().is_on_curve());
+    assert_eq!(T, Q.mul_bigint(LAMBDA.to_u64_digits()));
+
     line_vec
 }
 
@@ -254,15 +253,12 @@ mod test {
         let Q1 = g2.mul_bigint(BigUint::one().to_u64_digits());
         let Q2 = g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
 
-        let start = start_timer!(|| "start compute line precomputation");
         // indexer (oracle) for fixed point Q
         println!("Q1: {:?}", Q1);
         println!("e: {:?}", E.clone());
         println!("LAMBDA: {:?}", LAMBDA.clone());
+        let start = start_timer!(|| "start compute line precomputation");
         let L1 = line_function(Q1, E.clone(), LAMBDA.clone());
-
-        // println!("Q2: {:?}", Q2);
-        // let L2 = line_function(Q2.neg(), E.clone(), LAMBDA.clone());
         end_timer!(start);
     }
 }

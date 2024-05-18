@@ -166,11 +166,11 @@ mod test {
         }
         println!("");
         for x in Fq12Ext::beta_pi_2() {
-            println!("beta_pi_1: {:?}", x.to_string());
+            println!("beta_pi_2: {:?}", x.to_string());
         }
         println!("");
         for x in Fq12Ext::beta_pi_3() {
-            println!("beta_pi_1: {:?}", x.to_string());
+            println!("beta_pi_3: {:?}", x.to_string());
         }
     }
 }
