@@ -44,7 +44,6 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     let mut naf_digits = biguint_to_naf(e.clone());
     naf_digits.reverse();
     naf_digits.remove(0);
-    println!("\n passed: naf_digits: {:?}", naf_digits);
 
     let mut line_vec = vec![];
 
@@ -53,24 +52,16 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     // 1. double-add part, 6x + 2
     naf_digits.iter().enumerate().for_each(|(i, digit)| {
         let double_res = line_double(&T.into_affine());
-        println!("\n round_{i}");
-        println!("T:{:?}", T.into_affine());
-        println!("alpha:{:?}", double_res.0.to_string());
-        println!("bias:{:?}", double_res.1.to_string());
         line_vec.push(double_res);
 
         T = T.double();
         let digtil_pow2 = digit * digit;
-        println!("digit: {:?}", digit);
-
-        println!("digit_sqrt: {:?}", digtil_pow2);
         if digtil_pow2 == 1 {
             let qt = if 1 == *digit {
                 Q.clone()
             } else {
                 Q.clone().neg()
             };
-            println!("qt: {:?}", qt.into_affine());
 
             let qt_double_res = line_add(&T.into_affine(), &qt.into_affine());
             T = T.add(qt);
@@ -85,28 +76,22 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     // y = y' * beta^(3 * (p - 1) / 6))
     let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
-    // println!("x.conjugate_in_place:{:?}", x.conjugate_in_place().to_string());
-    // println!("y.conjugate_in_place:{:?}", y.conjugate_in_place().to_string());
     let pi_1_Q = G2Projective::new(
         x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
         y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
         Fq2::ONE,
     );
-    println!("pi_1_Q: {:?}", pi_1_Q);
     assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(MODULUS.to_u64_digits()));
 
     // 2.2. Q2 = pi2(Q)
     // x = x * beta * (2 * (p^2 - 1) / 6)
     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
     let (mut x, mut y) = (Q.x, Q.y);
-    println!("x: {:?}", x.to_string());
-    println!("y: {:?}", y.to_string());
     let pi_2_Q = G2Projective::new(
         x.mul(Fq12Ext::beta_pi_2()[1]),
         y.mul(Fq12Ext::beta_pi_2()[2]),
         Fq2::ONE,
     );
-    println!("pi_2_Q: {:?}", pi_2_Q);
     assert_eq!(
         pi_2_Q,
         Q.into_affine().mul_bigint(MODULUS.pow(2).to_u64_digits())
@@ -122,7 +107,6 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
         y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
         Fq2::ONE,
     );
-    println!("pi_3_Q: {:?}", pi_3_Q);
     assert!(pi_3_Q.into_affine().is_on_curve());
     assert_eq!(
         pi_3_Q,
@@ -145,9 +129,7 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
 
     line_vec.push(line_pi_2);
 
-    println!("hello");
-    assert!(true);
-    // TODO:
+    // TODO: Move this outersides
     //    k = e + px(x) - px(x) ** 2
     //     assert(T == Q.scalar_mul(k if k > 0 else rx(x) - (-k % rx(x))))
     // k = p - p^2 + e
@@ -159,21 +141,14 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     // TODO
     //     // rx(x) - (-k % rx(x))
     // } ));
-    println!("world");
 
-    // let line_pi_3 = line_add(&T.into_affine(), &pi_3_Q.into_affine());
     let line_pi_3 = (Fq2::ZERO, T.x.mul(T.z.inverse().unwrap().square()));
-    println!("1");
     T = T.add(pi_3_Q);
-    println!("alpha: {:?}", line_pi_3.0.to_string());
-    println!("bias: {:?}", line_pi_3.1.to_string());
-    println!("T: {:?}", T.into_affine());
     line_vec.push(line_pi_3);
 
-    // assert!(line_pi_3.0.is_zero());
+    assert!(line_pi_3.0.is_zero());
     assert!(T.into_affine().is_on_curve());
     assert_eq!(T, Q.mul_bigint(LAMBDA.to_u64_digits()));
-    println!("hello");
 
     line_vec
 }
