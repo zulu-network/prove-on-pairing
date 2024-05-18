@@ -29,7 +29,7 @@ mod tests {
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
 
-        println!("P1: {:?},\nP2: {:?}", p1, p2);
+        // println!("P1: {:?},\nP2: {:?}", p1, p2);
         // println!("Q1: {:?},\nQ2: {:?}", q1, q2);
         let l1 = generate_lines("l1.txt");
         let l2 = generate_lines("l2.txt");
@@ -149,11 +149,6 @@ mod tests {
         // );
         // let c_inv = Fq12::new(cy, cx);
 
-        // println!("c = {}", c);
-        // println!("c_inv = {}", c_inv);
-
-        assert_eq!(c * c_inv, Fq12::ONE);
-
         let wi_x = Fq6::new(
             Fq2::ZERO,
             Fq2::new(
@@ -168,11 +163,8 @@ mod tests {
         );
         let wi = Fq12::new(wi_x, Fq6::ZERO);
 
-        // println!("wi = {}", wi);
-
         let verify_res = Pairing::verify_pairings(vec![p1, p2], &[l1, l2], e, c, c_inv, wi);
-        // println!("verify_res = {}", verify_res);
-        // assert_eq!(verify_res, Fq12::ONE);
+        assert_eq!(verify_res, Fq12::ONE);
     }
 
     fn generate_lines(file_path: &str) -> Vec<(Fq2, Fq2)> {

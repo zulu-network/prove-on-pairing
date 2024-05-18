@@ -28,57 +28,44 @@ impl Pairing {
         c_inv: Fq12,
         wi: Fq12,
     ) -> Fq12 {
-        // dbg!(&eval_points);
-        // dbg!(lines);
-        // dbg!(e);
-        // dbg!(c.to_string());
-        // dbg!(c_inv);
-        // dbg!(wi);
-
         assert_eq!(eval_points.len(), lines.len());
         assert_eq!(c * c_inv, Fq12::ONE);
 
         let mut lc = 0_usize;
-        // let mut f = Fq12::ONE;
         let mut f = c_inv;
-        println!("f = c_inv: {}", f);
         let mut naf_digits = to_naf(e);
         naf_digits.reverse();
         naf_digits.remove(0);
-        // println!("naf_digits = {:?}", naf_digits);
-        let po = 0_usize;
+
+        let po1 = 9999;
         for (i, digit) in naf_digits.into_iter().enumerate() {
-            if i == po {
+            if i == po1 {
                 println!("before f.square, f = {}\n\n", f);
             }
             f = f.square();
-            if i == po {
+            if i == po1 {
                 println!("after f.square, f = {}\n\n", f);
             }
             // update c^lambda
             if digit.pow(2) == 1 {
                 f = if digit == 1 { f * c_inv } else { f * c };
-                if i == po {
+                if i == po1 {
                     dbg!(digit);
                     println!("update c^lambda f = {}\n\n", f);
                 }
             } else {
-                if i == po {
-                    dbg!(digit);
+                if i == po1 {
                     println!("update c^lambda f = {}\n\n", f);
                 }
             }
-            for (j, (&P, L)) in eval_points.iter().zip(lines).enumerate() {
+            for (&P, L) in eval_points.iter().zip(lines) {
                 let (alpha, bias) = L[lc];
-                if i == po {
-                    dbg!(j);
-                    dbg!(lc);
-                    println!("P = {:?}", P);
+                if i == po1 {
                     println!("alpha = {:?}\n", alpha.to_string());
                     println!("bias = {:?}\n\n", bias.to_string());
                 }
                 let le = line_evaluation(alpha, bias, P);
-                if i == po {
+                if i == po1 {
                     println!(
                         "after line_evaluation le.x = {:?}\nle.y={:?}\nle.z={:?}\n\n",
                         le.0.to_string(),
@@ -87,7 +74,7 @@ impl Pairing {
                     );
                 }
                 f = mul_line_base(f, le.0, le.1, le.2);
-                if i == po {
+                if i == po1 {
                     println!("after mul_line_base1 f = {}\n\n", f);
                 }
 
@@ -95,53 +82,72 @@ impl Pairing {
                     let (alpha, bias) = L[lc + 1];
                     let le = line_evaluation(alpha, bias, P);
                     f = mul_line_base(f, le.0, le.1, le.2);
-                    if i == po {
+                    if i == po1 {
                         println!("after mul_line_base2 f = {}\n\n", f);
                     }
                 } else {
-                    if i == po {
+                    if i == po1 {
                         println!("after mul_line_base2 f = {}\n\n", f);
                     }
                 }
             }
-            if i == po {
+            if i == po1 {
                 println!("after for loop f = {}", f);
             }
             lc = if digit == 0 { lc + 1 } else { lc + 2 };
-            if i == po {
-                println!("lc(80) = {}", lc);
-            }
         }
 
         // update c^lambda
         println!("before fq12_to_frobenius f = {}\n\n", f);
         f = f * fq12_to_frobenius(c_inv) * fq12_to_frobenius_p2(c) * fq12_to_frobenius_p3(c_inv);
         println!(
-            "fq12_to_frobenius(c_inv) = {}\n\n",
-            fq12_to_frobenius(c_inv).to_string()
+            "fq12_to_frobenius_p2(c) = {}\n\n",
+            fq12_to_frobenius_p2(c).to_string()
+        );
+        println!(
+            "fq12_to_frobenius_p3(c_inv) = {}\n\n",
+            fq12_to_frobenius_p3(c_inv).to_string()
         );
         println!("after fq12_to_frobenius f = {}\n\n", f);
         // update the scalar
         f = f * wi;
         println!("after update the scalar f = {}\n\n", f);
 
+        let po2 = 9999;
         // frobenius map part, p - p^2 + p^3
-        for (P, L) in eval_points.into_iter().zip(lines) {
+        for (i, (P, L)) in eval_points.into_iter().zip(lines).enumerate() {
+            println!("frobenius map part i = {}\n", i);
             for k in 0..3 {
                 let (alpha, bias) = L[lc + k];
+                println!("alpha = {:?}\n\n", alpha.to_string());
+                println!("bias = {:?}\n\n", bias.to_string());
                 if k == 2 {
                     let eval = Fq12::new(
-                        Fq6::ZERO,
                         Fq6::new(
-                            Fq2::ZERO,
+                            Fq2::new(P.x().expect("failed to read x").to_owned(), Fq::ZERO),
                             -bias,
-                            Fq2::new(Fq::ZERO, P.x().expect("failed to read x").to_owned()),
+                            Fq2::ZERO,
                         ),
+                        Fq6::ZERO,
                     );
+                    if i == po2 {
+                        println!("k = {} eval = {}\n\n", k, eval.to_string());
+                    }
                     f = f * eval;
+                    if i == po2 {
+                        println!("k = {} f = {}\n\n", k, f);
+                    }
                 } else {
                     let le = line_evaluation(alpha, bias, P);
+                    if i == po2 {
+                        println!("k == {} le.0 = {}\n\n", k, le.0.to_string());
+                        println!("k == {} le.1 = {}\n\n", k, le.1.to_string());
+                        println!("k == {} le.2 = {}\n\n", k, le.2.to_string());
+                    }
                     f = mul_line_base(f, le.0, le.1, le.2);
+                    if i == po2 {
+                        println!("k = {} f = {}\n\n", k, f);
+                    }
                 }
             }
         }
