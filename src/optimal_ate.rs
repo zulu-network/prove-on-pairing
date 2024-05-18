@@ -174,11 +174,14 @@ mod test {
         let P = g1
             .mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits())
             .into_affine();
+
+        println!("P:{:?}",P );
+        println!("\n Q:{:?}",Q );
         let actual = Bn254::miller_loop(
             <G1Affine as Into<<Bn254 as Pairing>::G1Prepared>>::into(P),
             <G2Affine as Into<<Bn254 as Pairing>::G2Prepared>>::into(Q),
         );
 
-        println!("actual: {:?}", actual.0.to_string());
+        println!("\n actual: {:?}", actual.0.to_string());
     }
 }
