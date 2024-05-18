@@ -73,74 +73,74 @@ fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     });
     // assert_eq!(T, Q.into_affine().mul_bigint(e.to_u64_digits()));
     {
-    //     // 2. frobenius map part, p - p^2 + p^3
-    //     // 2.1 Q1 = pi(Q)
-    //     // x = x' * beta^(2 * (p - 1) / 6)
-    //     // y = y' * beta^(3 * (p - 1) / 6))
-    //     let (mut x, mut y) = (Q.x, Q.y);
-    //
-    //     let pi_1_Q = G2Projective::new(
-    //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
-    //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
-    //         Fq2::ONE,
-    //     );
-    //     // assert!(pi_1_Q.into_affine().is_on_curve());
-    //     // assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(e.clone()));
-    //
-    //     // 2.2. Q2 = pi2(Q)
-    //     // x = x * beta * (2 * (p^2 - 1) / 6)
-    //     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
-    //     let (mut x, mut y) = (Q.x, Q.y);
-    //     let pi_2_Q = G2Projective::new(
-    //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_2()[1]),
-    //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_2()[2]),
-    //         Fq2::ONE,
-    //     );
-    //     // assert!(pi_2_Q.into_affine().is_on_curve());
-    //     // assert_eq!(
-    //     //     pi_2_Q,
-    //     //     Q.mul_bigint(&BigUint::from(Fq::MODULUS).pow(2).to_u64_digits())
-    //     // );
-    //
-    //     // 2.3. Q3 = pi3(Q)
-    //     // x = x' * beta * (2 * (p^3 - 1) / 6)
-    //     // y = y' * beta * (3 * (p^3 - 1) / 6)
-    //     let (mut x, mut y) = (Q.x, Q.y);
-    //     let pi_3_Q = G2Projective::new(
-    //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[1]),
-    //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
-    //         Fq2::ONE,
-    //     );
-    //     // assert!(pi_3_Q.into_affine().is_on_curve());
-    //     // assert_eq!(pi_3_Q, Q.mul_bigint(BigUint::from(Fq::MODULUS).pow(3)));
-    //
-    //     let line_pi_1 = line_add(&T.into_affine(), &pi_1_Q.into_affine());
-    //     T = T.add(pi_1_Q);
-    //     line_vec.push(line_pi_1);
-    //     // assert_eq!(T, Q.mul_bigint(BigUint::from(Fq::MODULUS).add(E)));
-    //
-    //     let line_pi_2 = line_add(&T.into_affine(), &pi_2_Q.into_affine());
-    //     T = T.add(pi_2_Q.neg());
-    //     line_vec.push(line_pi_2);
-    //
-    //     // k = p - p^2 + e
-    //     let k = BigUint::from(Fq::MODULUS) - BigUint::from(Fq::MODULUS).pow(2);
-    //     let k = k + e;
-    //     // assert_eq!(T, Q.mul_bigint(if k.gt(BigUint::ZERO){
-    //     //     k
-    //     // }else {
-    //     // TODO
-    //     //     // rx(x) - (-k % rx(x))
-    //     // } ));
-    //
-    //     let line_i = line_add(&T.into_affine(), &pi_3_Q.into_affine());
-    //     let T = T.add(pi_3_Q);
-    //     line_vec.push(line_i);
-    //
-    //     // assert
-    //     // assert_eq!(T, Q.mul_bigint(LAMBDA));
-    //     // assert!(T.into_affine().is_on_curve());
-    //     // assert!(line_i.0.is_zero());
+        //     // 2. frobenius map part, p - p^2 + p^3
+        //     // 2.1 Q1 = pi(Q)
+        //     // x = x' * beta^(2 * (p - 1) / 6)
+        //     // y = y' * beta^(3 * (p - 1) / 6))
+        //     let (mut x, mut y) = (Q.x, Q.y);
+        //
+        //     let pi_1_Q = G2Projective::new(
+        //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
+        //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
+        //         Fq2::ONE,
+        //     );
+        //     // assert!(pi_1_Q.into_affine().is_on_curve());
+        //     // assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(e.clone()));
+        //
+        //     // 2.2. Q2 = pi2(Q)
+        //     // x = x * beta * (2 * (p^2 - 1) / 6)
+        //     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
+        //     let (mut x, mut y) = (Q.x, Q.y);
+        //     let pi_2_Q = G2Projective::new(
+        //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_2()[1]),
+        //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_2()[2]),
+        //         Fq2::ONE,
+        //     );
+        //     // assert!(pi_2_Q.into_affine().is_on_curve());
+        //     // assert_eq!(
+        //     //     pi_2_Q,
+        //     //     Q.mul_bigint(&BigUint::from(Fq::MODULUS).pow(2).to_u64_digits())
+        //     // );
+        //
+        //     // 2.3. Q3 = pi3(Q)
+        //     // x = x' * beta * (2 * (p^3 - 1) / 6)
+        //     // y = y' * beta * (3 * (p^3 - 1) / 6)
+        //     let (mut x, mut y) = (Q.x, Q.y);
+        //     let pi_3_Q = G2Projective::new(
+        //         x.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[1]),
+        //         y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
+        //         Fq2::ONE,
+        //     );
+        //     // assert!(pi_3_Q.into_affine().is_on_curve());
+        //     // assert_eq!(pi_3_Q, Q.mul_bigint(BigUint::from(Fq::MODULUS).pow(3)));
+        //
+        //     let line_pi_1 = line_add(&T.into_affine(), &pi_1_Q.into_affine());
+        //     T = T.add(pi_1_Q);
+        //     line_vec.push(line_pi_1);
+        //     // assert_eq!(T, Q.mul_bigint(BigUint::from(Fq::MODULUS).add(E)));
+        //
+        //     let line_pi_2 = line_add(&T.into_affine(), &pi_2_Q.into_affine());
+        //     T = T.add(pi_2_Q.neg());
+        //     line_vec.push(line_pi_2);
+        //
+        //     // k = p - p^2 + e
+        //     let k = BigUint::from(Fq::MODULUS) - BigUint::from(Fq::MODULUS).pow(2);
+        //     let k = k + e;
+        //     // assert_eq!(T, Q.mul_bigint(if k.gt(BigUint::ZERO){
+        //     //     k
+        //     // }else {
+        //     // TODO
+        //     //     // rx(x) - (-k % rx(x))
+        //     // } ));
+        //
+        //     let line_i = line_add(&T.into_affine(), &pi_3_Q.into_affine());
+        //     let T = T.add(pi_3_Q);
+        //     line_vec.push(line_i);
+        //
+        //     // assert
+        //     // assert_eq!(T, Q.mul_bigint(LAMBDA));
+        //     // assert!(T.into_affine().is_on_curve());
+        //     // assert!(line_i.0.is_zero());
     }
     line_vec
 }
@@ -202,26 +202,40 @@ mod test {
     fn test_line_add() {
         println!("Start");
         let Q1 = G2Projective::from(g2);
-        let Q2 = G2Projective::from(g2.double());
+        let Q2 = G2Projective::from(g2).double();
 
-        println!("Q1: {:?}", Q1);
-        println!("Q2: {:?}", Q2);
-        // let line = line_add(&Q1.into_affine(), &Q2.into_affine());
-        // println!("alpha: {:?}", line.0);
-        // println!("bias: {:?}", line.1);
-    //     assert_eq!(
-    //         line.0,
-    //         Fq2::new(
-    //             Fq::from_str(
-    //                 "494514333748418991993317967895491161588236380839940082433572606709697006375"
-    //             )
-    //                 .unwrap(),
-    //             Fq::from_str(
-    //                 "9957851436228481902695716333269643414035938510514378903299635934490944883914"
-    //             )
-    //                 .unwrap(),
-    //         )
-    //     );
+        println!("Q1: {:?}", Q1.into_affine());
+        println!("Q2: {:?}", Q2.into_affine());
+        let line = line_add(&Q1.into_affine(), &Q2.into_affine());
+        // println!("alpha: {:?}", line.0.to_string());
+        println!("bias: {:?}", line.1.to_string());
+        assert_eq!(
+            line.0,
+            Fq2::new(
+                Fq::from_str(
+                    "17322200159135559786593682602367196430903128621957194838174337471042229537489"
+                )
+                .unwrap(),
+                Fq::from_str(
+                    "13357879408196058558132338895939622053982269645137478732965497231920858080670"
+                )
+                .unwrap(),
+            )
+        );
+
+        assert_eq!(
+            line.1,
+            Fq2::new(
+                Fq::from_str(
+                    "9837371316849015087103862504041462238679211850457142473950276246745360727711"
+                )
+                .unwrap(),
+                Fq::from_str(
+                    "20187872875180194894625542094089895199219468421059757009464967542497725908996"
+                )
+                .unwrap(),
+            )
+        );
     }
 
     #[test]
