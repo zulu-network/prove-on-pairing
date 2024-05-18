@@ -28,7 +28,8 @@ pub const g1: G1Affine = G1Affine::new_unchecked(G1_GENERATOR_X, G1_GENERATOR_Y)
 pub const g2: G2Affine = G2Affine::new_unchecked(G2_GENERATOR_X, G2_GENERATOR_Y);
 
 // constant modulus of Fq
-pub const MODULUS: &str = "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
+pub const MODULUS_STR: &str = "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
+pub const MODULUS: Lazy<BigUint> = Lazy::new(|| BigUint::from_str_radix(MODULUS_STR, 16).unwrap());
 
 // const X: &'static [u64] = &[4965661367192848881]. See more on: Config::X
 pub const X: Lazy<BigUint> = Lazy::new(|| BigUint::from_i128(4965661367192848881).unwrap());
@@ -72,7 +73,7 @@ mod test {
     #[test]
     fn test_modulus() {
         let actual = BigUint::from(Fq::MODULUS);
-        let expect = BigUint::from_str_radix(MODULUS, 16).unwrap();
+        let expect = BigUint::from_str_radix(MODULUS_STR, 16).unwrap();
         assert_eq!(actual, expect);
     }
 
