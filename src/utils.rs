@@ -1,4 +1,5 @@
 use ark_bn254::Fr;
+use ark_ff::One;
 use num_bigint::BigUint;
 use num_traits::{FromPrimitive, ToPrimitive};
 
@@ -48,7 +49,41 @@ pub fn to_naf(mut x: i128) -> Vec<i8> {
     return z;
 }
 
-pub fn px(x: BigUint) {}
+pub fn px(x: BigUint) -> BigUint {
+    let p1 = BigUint::from_i8(36).unwrap();
+    let p2 = BigUint::from_i8(24).unwrap();
+    p1.clone() * x.pow(4) + p1 * x.pow(3) + p2 * x.pow(2) + BigUint::one()
+}
+
+pub fn rx(x: BigUint) -> BigUint {
+    let p1 = BigUint::from_i8(36).unwrap();
+    let p2 = BigUint::from_i8(18).unwrap();
+    p1.clone() * x.pow(4) + p1 * x.pow(3) + p2 * x.pow(2) + BigUint::one()
+}
+
+pub fn tx(x: BigUint) -> BigUint {
+    let p1 = BigUint::from_i8(6).unwrap();
+    p1 * x.pow(2) + BigUint::one()
+}
+
+pub fn hx(x: BigUint) -> BigUint {
+    let p1 = BigUint::from_i8(18).unwrap();
+    let numerator = p1 * x.pow(12) - BigUint::one();
+    let denominator = rx(x);
+    numerator / denominator
+}
+
+pub fn lambdax(x: BigUint) -> BigUint {
+    let p1 = BigUint::from_i8(36).unwrap();
+    let p2 = BigUint::from_i8(18).unwrap();
+    p1.clone() * x.pow(4) + p1 * x.pow(3) + p2 * x.pow(2) + BigUint::one()
+}
+
+pub fn mx(x: BigUint) -> BigUint {
+    let p1 = BigUint::from_i8(36).unwrap();
+    let p2 = BigUint::from_i8(18).unwrap();
+    p1.clone() * x.pow(4) + p1 * x.pow(3) + p2 * x.pow(2) + BigUint::one()
+}
 
 #[cfg(test)]
 mod test {

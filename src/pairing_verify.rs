@@ -28,6 +28,13 @@ impl Pairing {
         c_inv: Fq12,
         wi: Fq12,
     ) -> Fq12 {
+        // dbg!(&eval_points);
+        // dbg!(lines);
+        // dbg!(e);
+        dbg!(c.to_string());
+        dbg!(c_inv);
+        dbg!(wi);
+
         assert_eq!(eval_points.len(), lines.len());
         assert_eq!(c * c_inv, Fq12::ONE);
 
@@ -37,8 +44,15 @@ impl Pairing {
         let mut naf_digits = to_naf(e);
         naf_digits.reverse();
         naf_digits.remove(0);
-        for digit in naf_digits.into_iter() {
+        // println!("naf_digits = {:?}", naf_digits);
+        for (i, digit) in naf_digits.into_iter().enumerate() {
+            // if i == 0 {
+            //     println!("before f.square, f = {}", f);
+            // }
             f = f.square();
+            // if i == 0 {
+            //     println!("after f.square, f = {}", f);
+            // }
             // update c^lambda
             if digit.pow(2) == 1 {
                 f = if digit == 1 { f * c_inv } else { f * c };
