@@ -151,9 +151,9 @@ pub fn mul_line(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
 }
 
 pub fn mul_line_base(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
-    let fq6_1 = Fq6::new(Fq2::ZERO, a, b);
-    let fq6_2 = Fq6::new(Fq2::ZERO, Fq2::ZERO, c);
-    let fl = Fq12::new(fq6_1, fq6_2);
+    let fq6_y = Fq6::new(b, a, Fq2::ZERO);
+    let fq6_x = Fq6::new(c, Fq2::ZERO, Fq2::ZERO);
+    let fl = Fq12::new(fq6_x, fq6_y);
     r.mul(fl)
 }
 

@@ -7,7 +7,7 @@ use std::ops::{Mul, Neg};
 pub fn line_evaluation(alpha: Fq2, bias: Fq2, point: G1Affine) -> (Fq2, Fq2, Fq2) {
     let mut neg_alpha = alpha.neg();
     neg_alpha.mul_assign_by_basefield(&point.x);
-    (bias.neg(), neg_alpha, Fq2::new(Fq::ZERO, point.y))
+    (bias.neg(), neg_alpha, Fq2::new(point.y, Fq::ZERO))
 }
 
 #[cfg(test)]

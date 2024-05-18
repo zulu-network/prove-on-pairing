@@ -31,9 +31,9 @@ impl Pairing {
         // dbg!(&eval_points);
         // dbg!(lines);
         // dbg!(e);
-        dbg!(c.to_string());
-        dbg!(c_inv);
-        dbg!(wi);
+        // dbg!(c.to_string());
+        // dbg!(c_inv);
+        // dbg!(wi);
 
         assert_eq!(eval_points.len(), lines.len());
         assert_eq!(c * c_inv, Fq12::ONE);
@@ -41,40 +41,89 @@ impl Pairing {
         let mut lc = 0_usize;
         // let mut f = Fq12::ONE;
         let mut f = c_inv;
+        println!("f = c_inv: {}", f);
         let mut naf_digits = to_naf(e);
         naf_digits.reverse();
         naf_digits.remove(0);
         // println!("naf_digits = {:?}", naf_digits);
+        let po = 0_usize;
         for (i, digit) in naf_digits.into_iter().enumerate() {
-            // if i == 0 {
-            //     println!("before f.square, f = {}", f);
-            // }
+            if i == po {
+                println!("before f.square, f = {}\n\n", f);
+            }
             f = f.square();
-            // if i == 0 {
-            //     println!("after f.square, f = {}", f);
-            // }
+            if i == po {
+                println!("after f.square, f = {}\n\n", f);
+            }
             // update c^lambda
             if digit.pow(2) == 1 {
                 f = if digit == 1 { f * c_inv } else { f * c };
+                if i == po {
+                    dbg!(digit);
+                    println!("update c^lambda f = {}\n\n", f);
+                }
+            } else {
+                if i == po {
+                    dbg!(digit);
+                    println!("update c^lambda f = {}\n\n", f);
+                }
             }
-            for (&P, L) in eval_points.iter().zip(lines) {
+            for (j, (&P, L)) in eval_points.iter().zip(lines).enumerate() {
                 let (alpha, bias) = L[lc];
+                if i == po {
+                    dbg!(j);
+                    dbg!(lc);
+                    println!("P = {:?}", P);
+                    println!("alpha = {:?}\n", alpha.to_string());
+                    println!("bias = {:?}\n\n", bias.to_string());
+                }
                 let le = line_evaluation(alpha, bias, P);
+                if i == po {
+                    println!(
+                        "after line_evaluation le.x = {:?}\nle.y={:?}\nle.z={:?}\n\n",
+                        le.0.to_string(),
+                        le.1.to_string(),
+                        le.2.to_string()
+                    );
+                }
                 f = mul_line_base(f, le.0, le.1, le.2);
+                if i == po {
+                    println!("after mul_line_base1 f = {}\n\n", f);
+                }
 
                 if digit.pow(2) == 1 {
                     let (alpha, bias) = L[lc + 1];
                     let le = line_evaluation(alpha, bias, P);
                     f = mul_line_base(f, le.0, le.1, le.2);
+                    if i == po {
+                        println!("after mul_line_base2 f = {}\n\n", f);
+                    }
+                } else {
+                    if i == po {
+                        println!("after mul_line_base2 f = {}\n\n", f);
+                    }
                 }
             }
+            if i == po {
+                println!("after for loop f = {}", f);
+            }
             lc = if digit == 0 { lc + 1 } else { lc + 2 };
+            if i == po {
+                println!("lc(80) = {}", lc);
+            }
         }
 
         // update c^lambda
+        println!("before fq12_to_frobenius f = {}\n\n", f);
         f = f * fq12_to_frobenius(c_inv) * fq12_to_frobenius_p2(c) * fq12_to_frobenius_p3(c_inv);
+        println!(
+            "fq12_to_frobenius(c_inv) = {}\n\n",
+            fq12_to_frobenius(c_inv).to_string()
+        );
+        println!("after fq12_to_frobenius f = {}\n\n", f);
         // update the scalar
         f = f * wi;
+        println!("after update the scalar f = {}\n\n", f);
 
         // frobenius map part, p - p^2 + p^3
         for (P, L) in eval_points.into_iter().zip(lines) {

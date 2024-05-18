@@ -68,13 +68,21 @@ impl Fq12Ext {
 
 // TODO: check if origin q12 is changed @Payne
 pub fn fq12_to_frobenius(mut q12: Fq12) -> Fq12 {
-    let e1_x = q12.c0.c0.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[4]);
-    let e1_y = q12.c0.c1.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]);
-    let e1_z = q12.c0.c2.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[0]);
+    for i in 0..5 {
+        println!(
+            "in frobenius, beta_pi_1[{}] = {:?}\n\n",
+            i,
+            Fq12Ext::beta_pi_1()[i].to_string()
+        );
+    }
 
-    let e2_x = q12.c1.c0.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[3]);
-    let e2_y = q12.c1.c1.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]);
-    let e2_z = q12.c1.c2.conjugate_in_place().to_owned();
+    let e2_x = q12.c1.c2.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[4]);
+    let e2_y = q12.c1.c1.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]);
+    let e2_z = q12.c1.c0.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[0]);
+
+    let e1_x = q12.c0.c2.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[3]);
+    let e1_y = q12.c0.c1.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]);
+    let e1_z = q12.c0.c0.conjugate_in_place().to_owned();
 
     Fq12::new(Fq6::new(e1_x, e1_y, e1_z), Fq6::new(e2_x, e2_y, e2_z))
 }
