@@ -8,11 +8,11 @@
 
 use crate::constant;
 use crate::constant::BETA;
-use ark_bn254::{Fq, Fq12, Fq2, Fq6, FqConfig};
-use ark_ff::{BigInt, BigInteger, Field, MontConfig};
+use ark_bn254::{Fq12, Fq2, Fq6};
+use ark_ff::Field;
 use num_bigint::BigUint;
 use num_traits::{FromPrimitive, One, Pow};
-use std::ops::{DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{DivAssign, Mul, MulAssign, SubAssign};
 
 // const beta: Fq2 = Fq2::new(Fq::ONE, Fq::from(9));
 pub struct Fq12Ext;
@@ -75,6 +75,8 @@ pub fn fq12_to_frobenius(mut q12: Fq12) -> Fq12 {
             i,
             Fq12Ext::beta_pi_1()[i].to_string()
         );
+        // let r: BigInt<4> = FqConfig::MODULUS;
+        // println!("FqConfig::MODULUS = {:?}", r.to_string());
     }
 
     let e2_x = q12.c1.c2.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[4]);
