@@ -3,36 +3,11 @@ use ark_ff::One;
 use num_bigint::BigUint;
 use num_traits::{FromPrimitive, ToPrimitive};
 
-pub fn biguint_to_naf(mut num: BigUint) -> Vec<i32> {
-    let mut naf = Vec::new();
-    let mut last_bit = 0;
-
-    while num > BigUint::ZERO {
-        let least_significant_bit = num.clone() & BigUint::from(1u8);
-        let digit = least_significant_bit.pow(last_bit).to_i32().unwrap();
-        naf.push(digit);
-        last_bit = least_significant_bit.to_u32().unwrap();
-        num >>= 1;
-    }
-
-    naf
+pub fn biguint_to_naf(mut num: BigUint) -> Vec<i8> {
+    to_naf(num.to_i128().unwrap())
 }
 
-pub fn naf_to_biguint(naf: &[i32]) -> BigUint {
-    let mut val = BigUint::ZERO;
-
-    for (i, digit) in naf.iter().enumerate() {
-        // Shift left by the current digit's position
-        val <<= 1;
-        if *digit != 0 {
-            // Add 1 for positive digit, 2 for negative
-            val += BigUint::from_i32(if *digit > 0 { 1 } else { 2 }).unwrap();
-        }
-    }
-
-    val
-}
-
+// TODO: This should not be public.
 pub fn to_naf(mut x: i128) -> Vec<i8> {
     let mut z = vec![];
     while x > 0 {
@@ -88,16 +63,22 @@ pub fn mx(x: BigUint) -> BigUint {
 #[cfg(test)]
 mod test {
     use super::*;
-    use num_traits::One;
+    use crate::constant;
+    use std::ops::Deref;
 
     #[test]
-    fn test_naf_to_biguint() {
-        let one = BigUint::one();
+    fn test_biguint_naf() {
+        let mut expect = to_naf(29793968203157093288);
+        expect.reverse();
+        expect.remove(0);
+        println!("res: {:?}", expect);
 
-        let naf = biguint_to_naf(one);
+        println!("E :{:?}", constant::E.deref());
+        let mut actual = biguint_to_naf(constant::E.clone());
+        actual.reverse();
+        actual.remove(0);
+        println!("res: {:?}", actual);
 
-        let actual = naf_to_biguint(&naf);
-
-        assert_eq!(BigUint::one(), actual);
+        assert_eq!(expect, actual);
     }
 }

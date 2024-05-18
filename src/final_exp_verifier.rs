@@ -16,16 +16,16 @@ use std::str::FromStr;
 //
 // See more on table 3 from https://eprint.iacr.org/2009/457.pdf
 pub fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) -> ark_bn254::Fq12 {
+    // r = a^t
     let mut r = a.pow(t.to_u64_digits());
     let e = 3_u32.pow(s - 1);
     let exp = 3_u32.pow(s) * &t;
 
     // compute cubic root of (a^t)^-1, say h
-    let (mut h, cc, mut c) = (
-        ark_bn254::Fq12::ONE,
-        c.pow([e as u64]),
-        c.inverse().unwrap(),
-    );
+    let mut h = ark_bn254::Fq12::ONE;
+    let cc = c.pow([e as u64]);
+    let mut c = c.inverse().unwrap();
+
     for i in 1..(s as i32) {
         let delta = (s as i32) - i - 1;
         let d = if delta < 0 {
@@ -42,6 +42,7 @@ pub fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) ->
     }
 
     // recover cubic root of a
+    // r = a^k * h
     r = a.pow(k.to_u64_digits()) * h;
     if t == 3_u32 * k + 1_u32 {
         r = r.inverse().unwrap();
@@ -64,6 +65,9 @@ mod test {
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
     use std::str::FromStr;
+
+    #[test]
+    fn test_tonelli_shanks_cubic() {}
 
     #[test]
     fn test_compute_c_wi() {
