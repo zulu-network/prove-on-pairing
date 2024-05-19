@@ -244,3 +244,54 @@ impl Pairing {
         (c, wi)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use ark_bn254::Bn254;
+    use ark_ec::{
+        // bn::G1Projective,
+        pairing::{Pairing, PairingOutput},
+        AffineRepr,
+        Group,
+    };
+    use ark_ff::Zero;
+
+    #[test]
+    fn test_multi_pairing() {
+        type E = Bn254;
+
+        // 8 * 10 = 2 * 3 + 4 * 5 + 6 * 9
+        let zero_g1: <E as Pairing>::G1 = <<E as Pairing>::G1Affine as AffineRepr>::zero().into();
+        let one_g1 = <<E as Pairing>::G1 as Group>::generator();
+        let one_g2 = <<E as Pairing>::G2 as Group>::generator();
+        let a = zero_g1 - one_g1.mul_bigint([8]);
+        let b = one_g2.mul_bigint([10]);
+        let c = one_g1.mul_bigint([2]);
+        let d = one_g2.mul_bigint([3]);
+        let e = one_g1.mul_bigint([4]);
+        let f = one_g2.mul_bigint([5]);
+        let g = one_g1.mul_bigint([6]);
+        let h = one_g2.mul_bigint([9]);
+        let ans1 = E::multi_pairing(&[a, c, e, g], &[b, d, f, h]);
+        let ans2 = PairingOutput::<E>::zero();
+        assert_eq!(ans1, ans2);
+
+        // let a_affine: G1Affine = a.into();
+        // let b_affine: G2Affine = b.into();
+        // let c_affine: G1Affine = c.into();
+        // let d_affine: G2Affine = d.into();
+        // let e_affine: G1Affine = e.into();
+        // let f_affine: G2Affine = f.into();
+        // let g_affine: G1Affine = g.into();
+        // let h_affine: G2Affine = h.into();
+
+        // dbg!(a_affine);
+        // dbg!(b_affine);
+        // dbg!(c_affine);
+        // dbg!(d_affine);
+        // dbg!(e_affine);
+        // dbg!(f_affine);
+        // dbg!(g_affine);
+        // dbg!(h_affine);
+    }
+}
