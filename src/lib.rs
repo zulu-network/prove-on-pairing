@@ -5,5 +5,4 @@ pub mod line_precompute;
 pub mod miller_loop_verify;
 pub mod optimal_ate;
 pub mod pairing_verify;
-pub mod tests;
 pub mod utils;

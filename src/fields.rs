@@ -107,7 +107,7 @@ pub fn fq12_to_frobenius_p2(q12: Fq12) -> Fq12 {
     //     // println!("FqConfig::MODULUS = {:?}", r.to_string());
     // }
 
-    println!("frobenius_p2 Self = {:?}\n\n", q12.to_string());
+    // println!("frobenius_p2 Self = {:?}\n\n", q12.to_string());
 
     let e2_z = q12.c1.c2 * Fq12Ext::beta_pi_2()[4];
     let e2_y = q12.c1.c1 * Fq12Ext::beta_pi_2()[2];

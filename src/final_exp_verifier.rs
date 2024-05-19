@@ -7,6 +7,7 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
 
+// Tonelli-Shanks for cube roots
 // Inputs:
 //         a: Fp12 which is cubic residue
 //         c: random Fp12 which is cubic non-residue
@@ -14,7 +15,8 @@ use std::str::FromStr;
 //         t: satisfying p^12 - 1 = 3^s * t
 //         k: k = (t + 1) // 3
 //
-// See more on table 3 from https://eprint.iacr.org/2009/457.pdf
+// Ref: Table 3 from https://eprint.iacr.org/2009/457.pdf
+// Ref: Algorithm 4 of [On Proving Pairings](https://eprint.iacr.org/2024/640.pdf)
 pub fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) -> ark_bn254::Fq12 {
     // r = a^t
     let mut r = a.pow(t.to_u64_digits());
@@ -65,9 +67,6 @@ mod test {
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
     use std::str::FromStr;
-
-    #[test]
-    fn test_tonelli_shanks_cubic() {}
 
     #[test]
     fn test_compute_c_wi() {

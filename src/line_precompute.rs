@@ -11,7 +11,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 // stands for (alpha, bias)
 type LiearRes = (Fq2, Fq2);
 
-fn line_double(point: &G2Affine) -> LiearRes {
+pub fn line_double(point: &G2Affine) -> LiearRes {
     let (x, y) = (point.x, point.y);
 
     // slope: alpha = 3 * x ^ 2 / (2 * y)
@@ -23,7 +23,7 @@ fn line_double(point: &G2Affine) -> LiearRes {
 }
 
 // NOTE: point can't equal with other.
-fn line_add(point: &G2Affine, other: &G2Affine) -> LiearRes {
+pub fn line_add(point: &G2Affine, other: &G2Affine) -> LiearRes {
     let (x1, y1) = (point.x, point.y);
     let (x2, y2) = (other.x, other.y);
 
@@ -34,10 +34,12 @@ fn line_add(point: &G2Affine, other: &G2Affine) -> LiearRes {
     (alpha, bias)
 }
 
+// Indexer for fixed point Q
 // cache line line_function for [6x + 2 + p - p^2 + p^3]Q
 // Input:
 //      Q: The Fixed Point
-fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
+// Ref: Algorithm 7 of [On Proving Pairings](https://eprint.iacr.org/2024/640.pdf)
+pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes> {
     let mut naf_digits = biguint_to_naf(e.clone());
     naf_digits.reverse();
     naf_digits.remove(0);

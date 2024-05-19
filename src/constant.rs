@@ -45,7 +45,7 @@ pub const E: Lazy<BigUint> = Lazy::new(|| {
 
 pub const LAMBDA: Lazy<BigUint> = Lazy::new(|| lambda(&X));
 
-// lambdax = 6x + 2 + p - p^2 + p^3
+// lambdax = 6X + 2 + p - p^2 + p^3
 fn lambda(x: &BigUint) -> BigUint {
     println!("x: {:?}", x);
     let p = BigUint::from(Fq::MODULUS);
