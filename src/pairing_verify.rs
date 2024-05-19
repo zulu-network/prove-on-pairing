@@ -167,7 +167,6 @@ pub fn verify_pairings(
 //
 // Ref: Algorithm 5 of [On Proving Pairings](https://eprint.iacr.org/2024/640.pdf)
 fn compute_lambda_residues(f: ark_bn254::Fq12) -> (ark_bn254::Fq12, ark_bn254::Fq12) {
-    let p = MODULUS;
     let r = BigUint::from_str(
         "21888242871839275222246405745257275088548364400416034343698204186575808495617",
     )
@@ -176,7 +175,7 @@ fn compute_lambda_residues(f: ark_bn254::Fq12) -> (ark_bn254::Fq12, ark_bn254::F
             "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
         ).unwrap();
     let s = 3_u32;
-    let exp = p.pow(12_u32) - 1_u32;
+    let exp = MODULUS.pow(12_u32) - 1_u32;
     let h = &exp / &r;
     let t = &exp / 3_u32.pow(s);
     let k = (&t + 1_u32) / 3_u32;

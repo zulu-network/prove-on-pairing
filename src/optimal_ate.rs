@@ -171,10 +171,12 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
     naf_digits.reverse();
     naf_digits.remove(0);
 
-    let mut f = Fq12::new(Fq6::ONE, Fq6::ZERO);
-    let mut f_list = vec![];
-    let Qp = Q.y.square();
     let mut T = q;
+    let Qp = Q.y.square();
+
+    let mut f = Fq12::new(Fq6::ONE, Fq6::ZERO);
+    // f_list is used for debug
+    let mut f_list = vec![];
 
     naf_digits.iter().enumerate().for_each(|(i, digit)| {
         f = f.square();
@@ -215,8 +217,8 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
     let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
     let pi_1_Q = G2Projective::new(
-        x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
-        y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
+        x.conjugate_in_place().mul(constant::BETA_PI_1[1]),
+        y.conjugate_in_place().mul(constant::BETA_PI_1[2]),
         Fq2::ONE,
     );
     assert_eq!(pi_1_Q, Q.mul_bigint(constant::MODULUS.to_u64_digits()));
@@ -226,8 +228,8 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
     let (x, y) = (Q.x, Q.y);
     let pi_2_Q = G2Projective::new(
-        x.mul(Fq12Ext::beta_pi_2()[1]),
-        y.mul(Fq12Ext::beta_pi_2()[2]),
+        x.mul(constant::BETA_PI_2[1]),
+        y.mul(constant::BETA_PI_2[2]),
         Fq2::ONE,
     );
     assert_eq!(pi_2_Q, Q.mul_bigint(MODULUS.pow(2).to_u64_digits()));
@@ -238,8 +240,8 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
     let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
     let pi_3_Q = G2Projective::new(
-        x.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[1]),
-        y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
+        x.conjugate_in_place().mul(constant::BETA_PI_3[1]),
+        y.conjugate_in_place().mul(constant::BETA_PI_3[2]),
         Fq2::ONE,
     );
     assert_eq!(pi_3_Q, Q.mul_bigint(MODULUS.pow(3).to_u64_digits()));
@@ -295,8 +297,8 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
 
 #[cfg(test)]
 mod test {
-    use crate::constant::{g1, g2};
-    use crate::optimal_ate::miller_loop;
+    use super::*;
+    use crate::constant;
     use ark_bn254::{Bn254, G1Affine, G2Affine};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};
@@ -305,10 +307,10 @@ mod test {
 
     #[test]
     fn test_bn254_miller_loop() {
-        let Q = g2
+        let Q = constant::g2
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
-        let P = g1
+        let P = constant::g1
             .mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits())
             .into_affine();
 
@@ -324,8 +326,8 @@ mod test {
 
     #[test]
     fn test_native_miller_loop() {
-        let Q = g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
-        let P = g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
+        let Q = constant::g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
+        let P = constant::g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
 
         println!("P:{:?}", P);
         println!("\n Q:{:?}", Q);

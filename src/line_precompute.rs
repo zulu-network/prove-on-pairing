@@ -1,3 +1,4 @@
+use crate::constant;
 use crate::constant::{E, LAMBDA, MODULUS};
 use crate::fields::Fq12Ext;
 use crate::utils::biguint_to_naf;
@@ -76,8 +77,8 @@ pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes
     let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
     let pi_1_Q = G2Projective::new(
-        x.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[1]),
-        y.conjugate_in_place().mul(Fq12Ext::beta_pi_1()[2]),
+        x.conjugate_in_place().mul(constant::BETA_PI_1[1]),
+        y.conjugate_in_place().mul(constant::BETA_PI_1[2]),
         Fq2::ONE,
     );
     assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(MODULUS.to_u64_digits()));
@@ -87,8 +88,8 @@ pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes
     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
     let (x, y) = (Q.x, Q.y);
     let pi_2_Q = G2Projective::new(
-        x.mul(Fq12Ext::beta_pi_2()[1]),
-        y.mul(Fq12Ext::beta_pi_2()[2]),
+        x.mul(constant::BETA_PI_2[1]),
+        y.mul(constant::BETA_PI_2[2]),
         Fq2::ONE,
     );
     assert_eq!(
@@ -102,8 +103,8 @@ pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes
     let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
     let pi_3_Q = G2Projective::new(
-        x.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[1]),
-        y.conjugate_in_place().mul(Fq12Ext::beta_pi_3()[2]),
+        x.conjugate_in_place().mul(constant::BETA_PI_3[1]),
+        y.conjugate_in_place().mul(constant::BETA_PI_3[2]),
         Fq2::ONE,
     );
     assert!(pi_3_Q.into_affine().is_on_curve());

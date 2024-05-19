@@ -7,7 +7,7 @@ pub fn biguint_to_naf(num: BigUint) -> Vec<i8> {
 }
 
 // TODO: This should not be public.
-pub fn to_naf(mut x: i128) -> Vec<i8> {
+fn to_naf(mut x: i128) -> Vec<i8> {
     let mut z = vec![];
     while x > 0 {
         if x % 2 == 0 {
