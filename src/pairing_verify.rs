@@ -270,118 +270,7 @@ mod test {
     use crate::optimal_ate::{line_func_add, miller_loop};
 
     #[test]
-    fn test_pairing_verify_1() {
-        // 1. setup pairing: (p1, q1)=(p2,q2)
-        //      To check (p1, q1)*(p2,-q2)=1
-        let p1 = constant::g1
-            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
-            .into_affine();
-        let p2 = constant::g1
-            .mul_bigint(BigUint::one().to_u64_digits())
-            .into_affine();
-
-        let q1 = constant::g2
-            .mul_bigint(BigUint::one().to_u64_digits())
-            .into_affine();
-        let q2 = constant::g2
-            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
-            .into_affine();
-
-        // ====================================
-        // ===== 2.Prover compute following data.
-        // ====================================
-
-        // 2.1 precompute lines of miller_loop
-        let l1 = line_function(
-            G2Projective::from(q1),
-            constant::E.clone(),
-            constant::LAMBDA.clone(),
-        );
-        let l2 = line_function(
-            G2Projective::from(q2.neg()),
-            constant::E.clone(),
-            constant::LAMBDA.clone(),
-        );
-
-        // 2.2 precompute witness
-        let cy = Fq6::new(
-            Fq2::new(
-                MontFp!(
-                    "1398074605395234385742746982635607890999901394449920787952679263329618900423"
-                ),
-                MontFp!(
-                    "14863623346637387528754574561712611762280560946730003365167624628783031806851"
-                ),
-            ),
-            Fq2::new(
-                MontFp!(
-                    "3943322538927771188455999564370373075332486995274784857622626372657519173057"
-                ),
-                MontFp!(
-                    "3097735610337843900368979344756038697740814458812421595304050335303356161701"
-                ),
-            ),
-            Fq2::new(
-                MontFp!(
-                    "15535495333518547635388053375087086844764140428602229212987121796906694947701"
-                ),
-                MontFp!(
-                    "17900230360671217726773770977461976340138958556757112953925160338294259755451"
-                ),
-            ),
-        );
-        let cx = Fq6::new(
-            Fq2::new(
-                MontFp!(
-                    "4667318771591831111896913998599388465660409602488670805853346418592518763334"
-                ),
-                MontFp!(
-                    "6713632336462274726021105432467423937237553861088593973094350524276003798886"
-                ),
-            ),
-            Fq2::new(
-                MontFp!(
-                    "21081939668623356886869294872217712850424216414807721597624545100857744884557"
-                ),
-                MontFp!(
-                    "16588937522064281852235800901297894214318954372559985137225140148647705064928"
-                ),
-            ),
-            Fq2::new(
-                MontFp!(
-                    "19903885137215268899583999685812289845712323958279995809868941246364604339090"
-                ),
-                MontFp!(
-                    "15864462405647635712161095062692932104398676326285281473670528335466546619372"
-                ),
-            ),
-        );
-        let c = Fq12::new(cx, cy);
-
-        let c_inv = c.inverse().unwrap();
-
-        let wi_x = Fq6::new(
-            Fq2::ZERO,
-            Fq2::new(
-                MontFp!(
-                    "1552599724427260165122619260710620891632201030296138444657693101145235169998"
-                ),
-                MontFp!(
-                    "6872310070170355934577608915679474652968694353285292038893436960198570441414"
-                ),
-            ),
-            Fq2::ZERO,
-        );
-        let wi = Fq12::new(wi_x, Fq6::ZERO);
-
-        let verify_res =
-            verify_pairings(vec![p1, p2], &[l1, l2], constant::E.clone(), c, c_inv, wi);
-        assert_eq!(verify_res, Fq12::ONE);
-        println!("========Successfully");
-    }
-
-    #[test]
-    fn test_pairing_verify_native_full() {
+    fn test_pairing_verify_native() {
         // 1. setup pairing: (p1, q1)=(p2,q2)
         //      To check (p1, q1)*(p2,-q2)=1
         let p1 = constant::g1
@@ -417,19 +306,21 @@ mod test {
         // 2.2 precompute witness
         // TODO: meet error when replacing it with compute.
         let f1 = miller_loop(G1Projective::from(p1), G2Projective::from(q1));
-        let f2 = miller_loop(G1Projective::from(p2), G2Projective::from(q2));
+        let f2 = miller_loop(G1Projective::from(p2), G2Projective::from(q2).neg());
 
+        println!("f1: {:?}", f1.to_string());
+        println!("f2: {:?}", f2.to_string());
         // 2.3 precompute c,wi
         let (c, wi) = compute_lambda_residues(f1.mul(f2));
         let c_inv = c.inverse().unwrap();
-        let verify_res = crate::pairing_verify::verify_pairings(
-            vec![p1, p2],
-            &[l1, l2],
-            constant::E.clone(),
-            c,
-            c_inv,
-            wi,
-        );
+        println!("c: {:?}", c.to_string());
+        println!("wi: {:?}", wi.to_string());
+
+        // ====================================
+        // ===== 2.Prover compute following data.
+        // ====================================
+        let verify_res =
+            verify_pairings(vec![p1, p2], &[l1, l2], constant::E.clone(), c, c_inv, wi);
         assert_eq!(verify_res, Fq12::ONE);
         println!("========Successfully");
     }
