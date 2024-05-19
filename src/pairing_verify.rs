@@ -8,11 +8,11 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
 
-use crate::compute_lambda_residues::LambdaResidues;
 use crate::constant::MODULUS;
+use crate::lambda_residues::LambdaResidues;
 use crate::utils::biguint_to_naf;
 use crate::{
-    precompute_lines::MillerLines,
+    miller_lines::MillerLines,
     utils::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
 };
 
@@ -168,7 +168,7 @@ mod test {
     use num_bigint::BigUint;
     use num_traits::FromPrimitive;
 
-    use crate::compute_lambda_residues::LambdaResidues;
+    use crate::lambda_residues::LambdaResidues;
     use crate::optimal_ate::NativeMillerLoop;
     use crate::{constant, dev};
 

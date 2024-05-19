@@ -1,6 +1,6 @@
 use crate::constant;
 use crate::constant::MODULUS;
-use crate::precompute_lines::MillerLines;
+use crate::miller_lines::MillerLines;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
