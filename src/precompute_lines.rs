@@ -9,7 +9,7 @@ use num_traits::Zero;
 use std::ops::{Add, Div, Mul, Neg};
 
 // stands for (alpha, bias)
-type LiearRes = (Fq2, Fq2);
+pub type LiearRes = (Fq2, Fq2);
 
 pub fn mul_line_base(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
     let fq6_y = Fq6::new(b, a, Fq2::ZERO);
@@ -26,7 +26,7 @@ pub fn line_evaluation(alpha: Fq2, bias: Fq2, point: G1Affine) -> (Fq2, Fq2, Fq2
     (bias.neg(), neg_alpha, Fq2::new(point.y, Fq::ZERO))
 }
 
-pub fn line_double(point: &G2Affine) -> LiearRes {
+fn line_double(point: &G2Affine) -> LiearRes {
     let (x, y) = (point.x, point.y);
 
     // slope: alpha = 3 * x ^ 2 / (2 * y)
@@ -38,7 +38,7 @@ pub fn line_double(point: &G2Affine) -> LiearRes {
 }
 
 // NOTE: point can't equal with other.
-pub fn line_add(point: &G2Affine, other: &G2Affine) -> LiearRes {
+fn line_add(point: &G2Affine, other: &G2Affine) -> LiearRes {
     let (x1, y1) = (point.x, point.y);
     let (x2, y2) = (other.x, other.y);
 

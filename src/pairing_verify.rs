@@ -169,9 +169,9 @@ mod test {
     use num_traits::FromPrimitive;
 
     use crate::compute_lambda_residues::compute_lambda_residues;
+    use crate::optimal_ate::NativeMillerLoop;
     use crate::{constant, dev};
 
-    use crate::optimal_ate::miller_loop;
     use crate::precompute_lines::line_function;
 
     #[test]
@@ -210,8 +210,9 @@ mod test {
 
         // 2.2 precompute witness
         // TODO: meet error when replacing it with compute.
-        let f1 = miller_loop(G1Projective::from(p1), G2Projective::from(q1));
-        let f2 = miller_loop(G1Projective::from(p2), G2Projective::from(q2).neg());
+        let f1 = NativeMillerLoop::miller_loop(G1Projective::from(p1), G2Projective::from(q1));
+        let f2 =
+            NativeMillerLoop::miller_loop(G1Projective::from(p2), G2Projective::from(q2).neg());
 
         println!("f1: {:?}", f1.to_string());
         println!("f2: {:?}", f2.to_string());
