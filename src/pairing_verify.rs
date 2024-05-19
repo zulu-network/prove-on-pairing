@@ -257,7 +257,7 @@ mod test {
         str::FromStr,
     };
 
-    use ark_bn254::{Bn254, Fq, Fq12, Fq2, Fq6, G1Affine, G2Affine, G2Projective};
+    use ark_bn254::{Bn254, Fq, Fq12, Fq2, Fq6, G1Affine, G1Projective, G2Affine, G2Projective};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};
     use ark_ff::{Field, MontFp, One};
@@ -267,7 +267,7 @@ mod test {
     use crate::constant;
     use crate::constant::LAMBDA;
     use crate::line_precompute::line_function;
-    use crate::optimal_ate::line_func_add;
+    use crate::optimal_ate::{line_func_add, miller_loop};
 
     #[test]
     fn test_pairing_verify_1() {
@@ -380,6 +380,61 @@ mod test {
         println!("========Successfully");
     }
 
+    #[test]
+    fn test_pairing_verify_native_full() {
+        // 1. setup pairing: (p1, q1)=(p2,q2)
+        //      To check (p1, q1)*(p2,-q2)=1
+        let p1 = constant::g1
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+        let p2 = constant::g1
+            .mul_bigint(BigUint::one().to_u64_digits())
+            .into_affine();
+
+        let q1 = constant::g2
+            .mul_bigint(BigUint::one().to_u64_digits())
+            .into_affine();
+        let q2 = constant::g2
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+
+        // ====================================
+        // ===== 2.Prover compute following data.
+        // ====================================
+
+        // 2.1 precompute lines of miller_loop
+        let l1 = line_function(
+            G2Projective::from(q1),
+            constant::E.clone(),
+            constant::LAMBDA.clone(),
+        );
+        let l2 = line_function(
+            G2Projective::from(q2.neg()),
+            constant::E.clone(),
+            constant::LAMBDA.clone(),
+        );
+
+        // 2.2 precompute witness
+        // TODO: meet error when replacing it with compute.
+        let f1 = miller_loop(G1Projective::from(p1), G2Projective::from(q1));
+        let f2 = miller_loop(G1Projective::from(p2), G2Projective::from(q2));
+
+        // 2.3 precompute c,wi
+        let (c, wi) = compute_lambda_residues(f1.mul(f2));
+        let c_inv = c.inverse().unwrap();
+        let verify_res = crate::pairing_verify::verify_pairings(
+            vec![p1, p2],
+            &[l1, l2],
+            constant::E.clone(),
+            c,
+            c_inv,
+            wi,
+        );
+        assert_eq!(verify_res, Fq12::ONE);
+        println!("========Successfully");
+    }
+
+    #[ignore]
     #[test]
     fn test_pairing_verify_full() {
         // 1. setup pairing: (p1, q1)=(p2,q2)
