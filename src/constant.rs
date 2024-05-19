@@ -84,6 +84,7 @@ pub static BETA_PI_3: Lazy<Vec<Fq2>> = Lazy::new(|| {
 mod test {
     use super::*;
 
+    use ark_ff::PrimeField;
     use std::str::FromStr;
 
     #[test]

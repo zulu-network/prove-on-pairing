@@ -1,5 +1,6 @@
 use crate::constant;
 use crate::constant::MODULUS;
+use crate::precompute_lines::mul_line_base;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
@@ -151,13 +152,7 @@ pub fn mul_line(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
     Fq12::new(x, y)
 }
 
-pub fn mul_line_base(r: Fq12, a: Fq2, b: Fq2, c: Fq2) -> Fq12 {
-    let fq6_y = Fq6::new(b, a, Fq2::ZERO);
-    let fq6_x = Fq6::new(c, Fq2::ZERO, Fq2::ZERO);
-    let fl = Fq12::new(fq6_x, fq6_y);
-    r.mul(fl)
-}
-
+// Native miller loop: With addend of p^3
 pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
     let P = p.into_affine();
     let Q = q.into_affine();
