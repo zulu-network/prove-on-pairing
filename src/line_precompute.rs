@@ -154,7 +154,7 @@ pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes
 
 #[cfg(test)]
 mod test {
-    use ark_bn254::{Fq, Fq2, G1Affine};
+    use ark_bn254::{Fq, Fq2};
     use ark_ec::{AffineRepr, CurveGroup};
     use ark_std::{end_timer, start_timer};
     use num_bigint::BigUint;
