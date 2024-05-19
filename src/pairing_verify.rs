@@ -163,10 +163,10 @@ mod test {
 
     use ark_bn254::{Bn254, Fq12, G1Affine, G1Projective, G2Affine, G2Projective};
     use ark_ec::pairing::{Pairing, PairingOutput};
-    use ark_ec::{AffineRepr, CurveGroup};
+    use ark_ec::{AffineRepr, CurveGroup, Group};
     use ark_ff::{Field, One};
     use num_bigint::BigUint;
-    use num_traits::FromPrimitive;
+    use num_traits::{FromPrimitive, Zero};
 
     use crate::lambda_residues::LambdaResidues;
     use crate::optimal_ate::NativeMillerLoop;
@@ -295,7 +295,6 @@ mod test {
         assert_eq!(verify_res, Fq12::ONE);
         println!("========Successfully");
     }
-
 
     #[test]
     fn test_multi_pairing() {
