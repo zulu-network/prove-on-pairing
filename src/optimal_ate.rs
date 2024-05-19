@@ -1,6 +1,6 @@
-use crate::constant;
-use crate::constant::MODULUS;
 use crate::miller_lines::MillerLines;
+use crate::params;
+use crate::params::MODULUS;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
@@ -164,7 +164,7 @@ impl NativeMillerLoop {
         let mQ = Q.neg();
 
         // 6x + 2 in NAF
-        let mut naf_digits = biguint_to_naf(constant::E.clone());
+        let mut naf_digits = biguint_to_naf(params::E.clone());
         naf_digits.reverse();
         naf_digits.remove(0);
 
@@ -208,25 +208,25 @@ impl NativeMillerLoop {
             }
         });
 
-        assert_eq!(T, Q.mul_bigint(constant::E.to_u64_digits()));
+        assert_eq!(T, Q.mul_bigint(params::E.to_u64_digits()));
 
         // aaaa
         let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
         let pi_1_Q = G2Projective::new(
-            x.conjugate_in_place().mul(constant::BETA_PI_1[1]),
-            y.conjugate_in_place().mul(constant::BETA_PI_1[2]),
+            x.conjugate_in_place().mul(params::BETA_PI_1[1]),
+            y.conjugate_in_place().mul(params::BETA_PI_1[2]),
             Fq2::ONE,
         );
-        assert_eq!(pi_1_Q, Q.mul_bigint(constant::MODULUS.to_u64_digits()));
+        assert_eq!(pi_1_Q, Q.mul_bigint(params::MODULUS.to_u64_digits()));
 
         // 2.2. Q2 = pi2(Q)
         // x = x * beta * (2 * (p^2 - 1) / 6)
         // y = y * beta * (3 * (p^2 - 1) / 6) = -y
         let (x, y) = (Q.x, Q.y);
         let pi_2_Q = G2Projective::new(
-            x.mul(constant::BETA_PI_2[1]),
-            y.mul(constant::BETA_PI_2[2]),
+            x.mul(params::BETA_PI_2[1]),
+            y.mul(params::BETA_PI_2[2]),
             Fq2::ONE,
         );
         assert_eq!(pi_2_Q, Q.mul_bigint(MODULUS.pow(2).to_u64_digits()));
@@ -237,8 +237,8 @@ impl NativeMillerLoop {
         let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
         let pi_3_Q = G2Projective::new(
-            x.conjugate_in_place().mul(constant::BETA_PI_3[1]),
-            y.conjugate_in_place().mul(constant::BETA_PI_3[2]),
+            x.conjugate_in_place().mul(params::BETA_PI_3[1]),
+            y.conjugate_in_place().mul(params::BETA_PI_3[2]),
             Fq2::ONE,
         );
         assert_eq!(pi_3_Q, Q.mul_bigint(MODULUS.pow(3).to_u64_digits()));
@@ -286,7 +286,7 @@ impl NativeMillerLoop {
         let f = f.mul(eval);
         f_list.push(f);
         // k = 6 * x + 2 + px(x) - px(x) ** 2 + px(x) ** 3
-        assert_eq!(T, Q.mul_bigint(constant::LAMBDA.to_u64_digits()));
+        assert_eq!(T, Q.mul_bigint(params::LAMBDA.to_u64_digits()));
         // assert(T.is_infinite() == True)
 
         f

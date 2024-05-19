@@ -8,8 +8,8 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
 
-use crate::constant::MODULUS;
 use crate::lambda_residues::LambdaResidues;
+use crate::params::MODULUS;
 use crate::utils::biguint_to_naf;
 use crate::{
     miller_lines::MillerLines,
@@ -170,7 +170,7 @@ mod test {
 
     use crate::lambda_residues::LambdaResidues;
     use crate::optimal_ate::NativeMillerLoop;
-    use crate::{constant, dev};
+    use crate::{dev, params};
 
     #[test]
     fn test_pairing_verify_native() {
@@ -197,13 +197,13 @@ mod test {
         // 2.1 precompute lines of miller_loop
         let l1 = MillerLines::precompute_lines(
             G2Projective::from(q1),
-            constant::E.clone(),
-            constant::LAMBDA.clone(),
+            params::E.clone(),
+            params::LAMBDA.clone(),
         );
         let l2 = MillerLines::precompute_lines(
             G2Projective::from(q2.neg()),
-            constant::E.clone(),
-            constant::LAMBDA.clone(),
+            params::E.clone(),
+            params::LAMBDA.clone(),
         );
 
         // 2.2 precompute witness
@@ -224,7 +224,7 @@ mod test {
         let verify_res = verify_pairings(
             vec![p1, p2],
             &[l1, l2],
-            constant::E.clone(),
+            params::E.clone(),
             witness.c,
             c_inv,
             witness.wi,
@@ -259,13 +259,13 @@ mod test {
         // 2.1 precompute lines of miller_loop
         let l1 = MillerLines::precompute_lines(
             G2Projective::from(q1),
-            constant::E.clone(),
-            constant::LAMBDA.clone(),
+            params::E.clone(),
+            params::LAMBDA.clone(),
         );
         let l2 = MillerLines::precompute_lines(
             G2Projective::from(q2.neg()),
-            constant::E.clone(),
-            constant::LAMBDA.clone(),
+            params::E.clone(),
+            params::LAMBDA.clone(),
         );
 
         // 2.2 precompute witness
@@ -287,7 +287,7 @@ mod test {
         let verify_res = crate::pairing_verify::verify_pairings(
             vec![p1, p2],
             &[l1, l2],
-            constant::E.clone(),
+            params::E.clone(),
             witness.c,
             c_inv,
             witness.wi,

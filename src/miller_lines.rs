@@ -1,5 +1,5 @@
-use crate::constant;
-use crate::constant::{E, LAMBDA, MODULUS};
+use crate::params;
+use crate::params::{E, LAMBDA, MODULUS};
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Affine, G2Affine, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup, Group};
@@ -100,8 +100,8 @@ impl MillerLines {
         let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
         let pi_1_Q = G2Projective::new(
-            x.conjugate_in_place().mul(constant::BETA_PI_1[1]),
-            y.conjugate_in_place().mul(constant::BETA_PI_1[2]),
+            x.conjugate_in_place().mul(params::BETA_PI_1[1]),
+            y.conjugate_in_place().mul(params::BETA_PI_1[2]),
             Fq2::ONE,
         );
         assert_eq!(pi_1_Q, Q.into_affine().mul_bigint(MODULUS.to_u64_digits()));
@@ -111,8 +111,8 @@ impl MillerLines {
         // y = y * beta * (3 * (p^2 - 1) / 6) = -y
         let (x, y) = (Q.x, Q.y);
         let pi_2_Q = G2Projective::new(
-            x.mul(constant::BETA_PI_2[1]),
-            y.mul(constant::BETA_PI_2[2]),
+            x.mul(params::BETA_PI_2[1]),
+            y.mul(params::BETA_PI_2[2]),
             Fq2::ONE,
         );
         assert_eq!(
@@ -126,8 +126,8 @@ impl MillerLines {
         let (mut x, mut y) = (Q.x.clone(), Q.y.clone());
 
         let pi_3_Q = G2Projective::new(
-            x.conjugate_in_place().mul(constant::BETA_PI_3[1]),
-            y.conjugate_in_place().mul(constant::BETA_PI_3[2]),
+            x.conjugate_in_place().mul(params::BETA_PI_3[1]),
+            y.conjugate_in_place().mul(params::BETA_PI_3[2]),
             Fq2::ONE,
         );
         assert!(pi_3_Q.into_affine().is_on_curve());
@@ -188,8 +188,8 @@ mod test {
 
     use super::*;
     use crate::{
-        constant::E,
         dev::{g1, g2},
+        params::E,
     };
 
     #[test]

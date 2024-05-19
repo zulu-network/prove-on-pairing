@@ -1,4 +1,5 @@
-use crate::constant::MODULUS;
+use crate::params;
+use crate::params::MODULUS;
 use ark_bn254::Fq12;
 use ark_ff::Field;
 use ark_std::UniformRand;
@@ -6,6 +7,7 @@ use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive};
 use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaCha20Rng;
+use std::ops::Deref;
 use std::str::FromStr;
 
 // c and wi,
@@ -25,19 +27,19 @@ impl LambdaResidues {
     //
     // Ref: Algorithm 5 of [On Proving Pairings](https://eprint.iacr.org/2024/640.pdf)
     pub fn compute_lambda_residues(f: Fq12) -> Self {
-        let r = BigUint::from_str(
-            "21888242871839275222246405745257275088548364400416034343698204186575808495617",
-        )
-        .unwrap();
-        let lambda = BigUint::from_str(
-            "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
-        ).unwrap();
+        // let r = BigUint::from_str(
+        //     "21888242871839275222246405745257275088548364400416034343698204186575808495617",
+        // )
+        // .unwrap();
+        // let lambda = BigUint::from_str(
+        //     "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
+        // ).unwrap();
         let s = 3_u32;
         let exp = MODULUS.pow(12_u32) - 1_u32;
-        let h = &exp / &r;
+        let h = &exp / params::R.deref();
         let t = &exp / 3_u32.pow(s);
         let k = (&t + 1_u32) / 3_u32;
-        let m = &lambda / &r;
+        let m = params::LAMBDA.deref() / params::R.deref();
         let d = 3_u32;
         let mm = &m / d;
 
@@ -78,18 +80,18 @@ impl LambdaResidues {
         }
         assert_eq!(wi.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
-        assert_eq!(lambda, &d * &mm * &r);
+        assert_eq!(params::LAMBDA.clone(), &d * &mm * params::R.deref());
         // f1 is scaled f
         let f1 = f * wi;
 
         // r-th root of f1, say f2
-        let r_inv = r.modinv(&h).unwrap();
+        let r_inv = params::R.deref().modinv(&h).unwrap();
         assert_ne!(r_inv, BigUint::one());
         let f2 = f1.pow(r_inv.to_u64_digits());
         assert_ne!(f2, ark_bn254::Fq12::ONE);
 
         // m'-th root of f, say f3
-        let mm_inv = mm.modinv(&(r * h)).unwrap();
+        let mm_inv = mm.modinv(&(params::R.deref() * h)).unwrap();
         assert_ne!(mm_inv, BigUint::one());
         let f3 = f2.pow(mm_inv.to_u64_digits());
         assert_eq!(f3.pow(cofactor_cubic.to_u64_digits()), ark_bn254::Fq12::ONE);
@@ -98,7 +100,7 @@ impl LambdaResidues {
         // d-th (cubic) root, say c
         let c = Self::tonelli_shanks_cubic(f3, w, s, t, k);
         assert_ne!(c, ark_bn254::Fq12::ONE);
-        assert_eq!(c.pow(lambda.to_u64_digits()), f * wi);
+        assert_eq!(c.pow(params::LAMBDA.deref().to_u64_digits()), f * wi);
 
         Self { c, wi }
     }
@@ -154,12 +156,14 @@ impl LambdaResidues {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::constant::MODULUS;
+    use crate::params::{LAMBDA, MODULUS};
+    use std::ops::Deref;
 
     use ark_ff::{Field, One};
     use ark_std::UniformRand;
     use num_bigint::BigUint;
 
+    use crate::params;
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
     use std::str::FromStr;
@@ -167,19 +171,13 @@ mod test {
     #[test]
     fn test_compute_c_wi() {
         // 1. constant params
-        let r = BigUint::from_str(
-            "21888242871839275222246405745257275088548364400416034343698204186575808495617",
-        )
-        .unwrap();
-        let lambda = BigUint::from_str(
-            "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
-        ).unwrap();
+
         let s = 3_u32;
         let exp = MODULUS.pow(12) - 1_u32;
-        let h = &exp / &r;
+        let h = &exp / params::R.deref();
         let t = &exp / 3_u32.pow(s);
         let k = (&t + 1_u32) / 3_u32;
-        let m = &lambda / &r;
+        let m = params::LAMBDA.deref() / params::R.deref();
         let d = 3_u32;
         let mm = &m / d;
 
@@ -189,10 +187,10 @@ mod test {
         // sample a miller loop result f which is cubic non-residue
         let f = {
             // (p^12 - 1) // 3
-            let mut f = ark_bn254::Fq12::rand(&mut prng).pow(&r.to_u64_digits());
+            let mut f = ark_bn254::Fq12::rand(&mut prng).pow(params::R.deref().to_u64_digits());
             let mut legendre = f.pow(cofactor_cubic.to_u64_digits());
             while legendre == ark_bn254::Fq12::ONE {
-                f = ark_bn254::Fq12::rand(&mut prng).pow(&r.to_u64_digits());
+                f = ark_bn254::Fq12::rand(&mut prng).pow(params::R.deref().to_u64_digits());
                 legendre = f.pow(cofactor_cubic.to_u64_digits());
             }
             f
@@ -229,22 +227,22 @@ mod test {
         }
         assert_eq!(wi.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
-        assert_eq!(lambda, &d * &mm * &r);
+        assert_eq!(params::LAMBDA.clone(), &d * &mm * params::R.deref());
         // f1 is scaled f
         let f1 = f * wi;
 
         // r-th root of f1, say f2
-        let r_inv = r.modinv(&h).unwrap();
+        let r_inv = params::R.deref().modinv(&h).unwrap();
         assert_ne!(r_inv, BigUint::one());
         let f2 = f1.pow(r_inv.to_u64_digits());
 
         // m'-th root of f, say f3
-        let mm_inv = mm.modinv(&(r * h)).unwrap();
+        let mm_inv = mm.modinv(&(params::R.deref() * h)).unwrap();
         assert_ne!(mm_inv, BigUint::one());
         let f3 = f2.pow(mm_inv.to_u64_digits());
 
         // d-th (cubic) root, say c
         let c = LambdaResidues::tonelli_shanks_cubic(f3, w, s, t, k);
-        assert_eq!(c.pow(lambda.to_u64_digits()), f * wi);
+        assert_eq!(c.pow(params::LAMBDA.deref().to_u64_digits()), f * wi);
     }
 }
