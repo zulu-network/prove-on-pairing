@@ -297,7 +297,7 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{dev};
+    use crate::dev;
     use ark_bn254::{Bn254, G1Affine, G2Affine};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};

@@ -1,6 +1,6 @@
 use crate::constant;
 use ark_bn254::{Fq, Fq2};
-use ark_ff::{Field};
+use ark_ff::Field;
 use num_bigint::BigUint;
 use num_traits::{FromPrimitive, Num, One, Pow};
 use once_cell::sync::Lazy;
@@ -83,8 +83,7 @@ pub static BETA_PI_3: Lazy<Vec<Fq2>> = Lazy::new(|| {
 #[cfg(test)]
 mod test {
     use super::*;
-    
-    
+
     use std::str::FromStr;
 
     #[test]

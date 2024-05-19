@@ -8,7 +8,7 @@
 
 use crate::constant;
 use ark_bn254::{Fq12, Fq6};
-use std::ops::{Mul};
+use std::ops::Mul;
 
 pub fn fq12_to_frobenius(mut q12: Fq12) -> Fq12 {
     let e2_z = q12.c1.c2.conjugate_in_place().mul(constant::BETA_PI_1[4]);
