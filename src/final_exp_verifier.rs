@@ -53,13 +53,12 @@ pub fn tonelli_shanks_cubic(a: Fq12, c: Fq12, s: u32, t: BigUint, k: BigUint) ->
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::constant::{MODULUS, MODULUS_STR};
-    use ark_bn254::Fq;
-    use ark_ff::PrimeField;
+    use crate::constant::MODULUS;
+
     use ark_ff::{Field, One};
     use ark_std::UniformRand;
     use num_bigint::BigUint;
-    use num_traits::{Num, ToPrimitive};
+
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
     use std::str::FromStr;

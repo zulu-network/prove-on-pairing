@@ -250,23 +250,18 @@ fn compute_lambda_residues(f: ark_bn254::Fq12) -> (ark_bn254::Fq12, ark_bn254::F
 mod test {
     use super::*;
     use std::ops::{Mul, Neg};
-    use std::{
-        fs::File,
-        io::{self, Read},
-        str::FromStr,
-    };
 
-    use ark_bn254::{Bn254, Fq, Fq12, Fq2, Fq6, G1Affine, G1Projective, G2Affine, G2Projective};
+    use ark_bn254::{Bn254, Fq12, G1Affine, G1Projective, G2Affine, G2Projective};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};
-    use ark_ff::{Field, MontFp, One};
+    use ark_ff::{Field, One};
     use num_bigint::BigUint;
     use num_traits::FromPrimitive;
 
     use crate::constant;
-    use crate::constant::LAMBDA;
+
     use crate::line_precompute::line_function;
-    use crate::optimal_ate::{line_func_add, miller_loop};
+    use crate::optimal_ate::miller_loop;
 
     #[test]
     fn test_pairing_verify_native() {
