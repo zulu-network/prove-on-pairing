@@ -1,14 +1,10 @@
 use crate::constant;
-use crate::constant::{LAMBDA, MODULUS};
+use crate::constant::MODULUS;
 use crate::fields::Fq12Ext;
 use crate::utils::biguint_to_naf;
-use ark_bn254::{
-    Bn254, Fq, Fq12, Fq2, Fq2Config, Fq6, G1Affine, G1Projective, G2Affine, G2Projective,
-};
-use ark_ec::pairing::Pairing;
+use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
-use ark_ff::{Field, Fp2ConfigWrapper, QuadExtField};
-use num_bigint::BigUint;
+use ark_ff::Field;
 use std::ops::{Add, Mul, Neg, Sub};
 
 pub fn line_func_add(
@@ -61,7 +57,7 @@ pub fn line_func_add(
     let mut t2 = L1 * p.x;
     t2 = t2.double();
 
-    let mut a = t2 - t;
+    let a = t2 - t;
 
     let x = q.y;
     let mut c = r_z;
@@ -128,7 +124,7 @@ fn line_func_double(r: G2Projective, q: G1Projective) -> (Fq2, Fq2, Fq2, G2Proje
 
     // abandon the convenience of projective coordinate, be consistant with verifier
     // 2 * z_r * z_t^2
-    let mut aux_inv = r_t.mul(r_z).double().inverse().unwrap();
+    let aux_inv = r_t.mul(r_z).double().inverse().unwrap();
     let a = a.mul(aux_inv);
     let b = b.mul(aux_inv);
     let c = c.mul(aux_inv);
@@ -228,7 +224,7 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
     // 2.2. Q2 = pi2(Q)
     // x = x * beta * (2 * (p^2 - 1) / 6)
     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
-    let (mut x, mut y) = (Q.x, Q.y);
+    let (x, y) = (Q.x, Q.y);
     let pi_2_Q = G2Projective::new(
         x.mul(Fq12Ext::beta_pi_2()[1]),
         y.mul(Fq12Ext::beta_pi_2()[2]),

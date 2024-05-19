@@ -1,12 +1,12 @@
 use crate::constant::{E, LAMBDA, MODULUS};
 use crate::fields::Fq12Ext;
-use crate::utils::{biguint_to_naf, to_naf};
-use ark_bn254::{Fq, Fq12, Fq2, G1Affine, G2Affine, G2Projective};
+use crate::utils::biguint_to_naf;
+use ark_bn254::{Fq2, G2Affine, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup, Group};
-use ark_ff::{Field, PrimeField};
+use ark_ff::Field;
 use num_bigint::BigUint;
 use num_traits::Zero;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg};
 
 // stands for (alpha, bias)
 type LiearRes = (Fq2, Fq2);
@@ -85,7 +85,7 @@ pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes
     // 2.2. Q2 = pi2(Q)
     // x = x * beta * (2 * (p^2 - 1) / 6)
     // y = y * beta * (3 * (p^2 - 1) / 6) = -y
-    let (mut x, mut y) = (Q.x, Q.y);
+    let (x, y) = (Q.x, Q.y);
     let pi_2_Q = G2Projective::new(
         x.mul(Fq12Ext::beta_pi_2()[1]),
         y.mul(Fq12Ext::beta_pi_2()[2]),

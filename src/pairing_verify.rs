@@ -1,9 +1,9 @@
-use ark_bn254::{fq::Fq, Fq12, Fq2, Fq6, Fr, G1Affine};
+use ark_bn254::{fq::Fq, Fq12, Fq2, Fq6, G1Affine};
 use ark_ec::AffineRepr;
-use ark_ff::{Field, PrimeField};
+use ark_ff::Field;
 use ark_std::UniformRand;
 use num_bigint::BigUint;
-use num_traits::{Num, One};
+use num_traits::One;
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
@@ -15,7 +15,6 @@ use crate::{
     fields::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
     miller_loop_verify::line_evaluation,
     optimal_ate::mul_line_base,
-    utils::to_naf,
 };
 
 // Inputs:

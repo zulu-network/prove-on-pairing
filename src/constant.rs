@@ -1,12 +1,9 @@
-use ark_bn254::{Config, Fq, Fq2, FqConfig, G1Affine, G2Affine};
-use ark_ec::bn::BnConfig;
+use ark_bn254::{Fq, Fq2, G1Affine, G2Affine};
 use ark_ff::{Field, MontFp, PrimeField};
-use num_bigint::{BigInt, BigUint};
+use num_bigint::BigUint;
 use num_traits::{FromPrimitive, Num};
 use once_cell::sync::Lazy;
-use std::clone::Clone;
 use std::ops::{Add, Mul, Sub};
-use std::str::FromStr;
 
 pub static BETA: Lazy<Fq2> = Lazy::new(|| Fq2::new(Fq::from(9), Fq::ONE));
 
@@ -59,6 +56,7 @@ fn lambda(x: &BigUint) -> BigUint {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_lamb() {

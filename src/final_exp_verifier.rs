@@ -1,11 +1,7 @@
 use ark_bn254::Fq12;
-use ark_ff::{Field, One};
-use ark_std::UniformRand;
+use ark_ff::Field;
 use num_bigint::BigUint;
-use num_traits::{Num, ToPrimitive};
-use rand::SeedableRng;
-use rand_chacha::ChaCha20Rng;
-use std::str::FromStr;
+use num_traits::ToPrimitive;
 
 // Tonelli-Shanks for cube roots
 // Inputs:

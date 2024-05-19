@@ -1,6 +1,6 @@
-use ark_bn254::{Fq, Fq12, Fq2, G1Affine};
+use ark_bn254::{Fq, Fq2, G1Affine};
 use ark_ff::Field;
-use std::ops::{Mul, Neg};
+use std::ops::Neg;
 
 // we use affine coordinate to verify the line evaluation
 // (-b) + y_P * w^3 + (-alpha * x_P) * w^2 where w \in Fp12

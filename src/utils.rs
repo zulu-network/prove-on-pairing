@@ -1,9 +1,8 @@
-use ark_bn254::Fr;
 use ark_ff::One;
 use num_bigint::BigUint;
 use num_traits::{FromPrimitive, ToPrimitive};
 
-pub fn biguint_to_naf(mut num: BigUint) -> Vec<i8> {
+pub fn biguint_to_naf(num: BigUint) -> Vec<i8> {
     to_naf(num.to_i128().unwrap())
 }
 
