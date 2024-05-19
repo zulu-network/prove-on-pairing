@@ -8,11 +8,11 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::str::FromStr;
 
-use crate::compute_lambda_residues::tonelli_shanks_cubic;
+use crate::compute_lambda_residues::LambdaResidues;
 use crate::constant::MODULUS;
 use crate::utils::biguint_to_naf;
 use crate::{
-    precompute_lines::{line_evaluation, mul_line_base},
+    precompute_lines::MillerLines,
     utils::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
 };
 
@@ -63,7 +63,7 @@ pub fn verify_pairings(
                 println!("alpha = {:?}\n", alpha.to_string());
                 println!("bias = {:?}\n\n", bias.to_string());
             }
-            let le = line_evaluation(alpha, bias, P);
+            let le = MillerLines::line_evaluation(alpha, bias, P);
             if i == po1 {
                 println!(
                     "after line_evaluation le.x = {:?}\nle.y={:?}\nle.z={:?}\n\n",
@@ -72,15 +72,15 @@ pub fn verify_pairings(
                     le.2.to_string()
                 );
             }
-            f = mul_line_base(f, le.0, le.1, le.2);
+            f = MillerLines::mul_line_base(f, le.0, le.1, le.2);
             if i == po1 {
                 println!("after mul_line_base1 f = {}\n\n", f);
             }
 
             if digit.pow(2) == 1 {
                 let (alpha, bias) = L[lc + 1];
-                let le = line_evaluation(alpha, bias, P);
-                f = mul_line_base(f, le.0, le.1, le.2);
+                let le = MillerLines::line_evaluation(alpha, bias, P);
+                f = MillerLines::mul_line_base(f, le.0, le.1, le.2);
                 if i == po1 {
                     println!("after mul_line_base2 f = {}\n\n", f);
                 }
@@ -137,13 +137,13 @@ pub fn verify_pairings(
                     println!("k = {} f = {}\n\n", k, f);
                 }
             } else {
-                let le = line_evaluation(alpha, bias, P);
+                let le = MillerLines::line_evaluation(alpha, bias, P);
                 if i == po2 {
                     println!("k == {} le.0 = {}\n\n", k, le.0.to_string());
                     println!("k == {} le.1 = {}\n\n", k, le.1.to_string());
                     println!("k == {} le.2 = {}\n\n", k, le.2.to_string());
                 }
-                f = mul_line_base(f, le.0, le.1, le.2);
+                f = MillerLines::mul_line_base(f, le.0, le.1, le.2);
                 if i == po2 {
                     println!("k = {} f = {}\n\n", k, f);
                 }
@@ -168,11 +168,9 @@ mod test {
     use num_bigint::BigUint;
     use num_traits::FromPrimitive;
 
-    use crate::compute_lambda_residues::compute_lambda_residues;
+    use crate::compute_lambda_residues::LambdaResidues;
     use crate::optimal_ate::NativeMillerLoop;
     use crate::{constant, dev};
-
-    use crate::precompute_lines::line_function;
 
     #[test]
     fn test_pairing_verify_native() {
@@ -197,12 +195,12 @@ mod test {
         // ====================================
 
         // 2.1 precompute lines of miller_loop
-        let l1 = line_function(
+        let l1 = MillerLines::precompute_lines(
             G2Projective::from(q1),
             constant::E.clone(),
             constant::LAMBDA.clone(),
         );
-        let l2 = line_function(
+        let l2 = MillerLines::precompute_lines(
             G2Projective::from(q2.neg()),
             constant::E.clone(),
             constant::LAMBDA.clone(),
@@ -217,16 +215,20 @@ mod test {
         println!("f1: {:?}", f1.to_string());
         println!("f2: {:?}", f2.to_string());
         // 2.3 precompute c,wi
-        let (c, wi) = compute_lambda_residues(f1.mul(f2));
-        let c_inv = c.inverse().unwrap();
-        println!("c: {:?}", c.to_string());
-        println!("wi: {:?}", wi.to_string());
+        let witness = LambdaResidues::compute_lambda_residues(f1.mul(f2));
+        let c_inv = witness.c.inverse().unwrap();
 
         // ====================================
         // ===== 2.Prover compute following data.
         // ====================================
-        let verify_res =
-            verify_pairings(vec![p1, p2], &[l1, l2], constant::E.clone(), c, c_inv, wi);
+        let verify_res = verify_pairings(
+            vec![p1, p2],
+            &[l1, l2],
+            constant::E.clone(),
+            witness.c,
+            c_inv,
+            witness.wi,
+        );
         assert_eq!(verify_res, Fq12::ONE);
         println!("========Successfully");
     }
@@ -255,12 +257,12 @@ mod test {
         // ====================================
 
         // 2.1 precompute lines of miller_loop
-        let l1 = line_function(
+        let l1 = MillerLines::precompute_lines(
             G2Projective::from(q1),
             constant::E.clone(),
             constant::LAMBDA.clone(),
         );
-        let l2 = line_function(
+        let l2 = MillerLines::precompute_lines(
             G2Projective::from(q2.neg()),
             constant::E.clone(),
             constant::LAMBDA.clone(),
@@ -280,15 +282,15 @@ mod test {
         let (f1, f2) = (f1.0, f2.0);
 
         // 2.3 precompute c,wi
-        let (c, wi) = compute_lambda_residues(f1.mul(f2));
-        let c_inv = c.inverse().unwrap();
+        let witness = LambdaResidues::compute_lambda_residues(f1.mul(f2));
+        let c_inv = witness.c.inverse().unwrap();
         let verify_res = crate::pairing_verify::verify_pairings(
             vec![p1, p2],
             &[l1, l2],
             constant::E.clone(),
-            c,
+            witness.c,
             c_inv,
-            wi,
+            witness.wi,
         );
         assert_eq!(verify_res, Fq12::ONE);
         println!("========Successfully");

@@ -1,6 +1,6 @@
 use crate::constant;
 use crate::constant::MODULUS;
-use crate::precompute_lines::mul_line_base;
+use crate::precompute_lines::MillerLines;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
@@ -179,7 +179,7 @@ impl NativeMillerLoop {
             f = f.square();
             let (a, b, c, t) = Self::line_func_double(G2Projective::from(T), G1Projective::from(P));
             T = t;
-            f = mul_line_base(f, a, b, c);
+            f = MillerLines::mul_line_base(f, a, b, c);
             f_list.push(f);
 
             if *digit == 1 {
@@ -191,7 +191,7 @@ impl NativeMillerLoop {
                 );
                 T = t;
 
-                f = mul_line_base(f, a, b, c);
+                f = MillerLines::mul_line_base(f, a, b, c);
                 f_list.push(f);
             } else if *digit == -1 {
                 let (a, b, c, t) = Self::line_func_add(
@@ -202,7 +202,7 @@ impl NativeMillerLoop {
                 );
                 T = t;
 
-                f = mul_line_base(f, a, b, c);
+                f = MillerLines::mul_line_base(f, a, b, c);
 
                 f_list.push(f);
             }
@@ -252,7 +252,7 @@ impl NativeMillerLoop {
         );
         T = t;
 
-        let f = mul_line_base(f, a, b, c);
+        let f = MillerLines::mul_line_base(f, a, b, c);
         f_list.push(f);
 
         let Qp = pi_2_Q.y.square();
@@ -265,7 +265,7 @@ impl NativeMillerLoop {
         );
         T = t;
 
-        let f = mul_line_base(f, a, b, c);
+        let f = MillerLines::mul_line_base(f, a, b, c);
         f_list.push(f);
 
         // k = 6 * x + 2 + px(x) - px(x) ** 2
