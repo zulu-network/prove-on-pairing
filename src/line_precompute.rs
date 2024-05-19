@@ -1,6 +1,5 @@
 use crate::constant;
 use crate::constant::{E, LAMBDA, MODULUS};
-use crate::fields::Fq12Ext;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq2, G2Affine, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup, Group};
@@ -155,16 +154,18 @@ pub fn line_function(Q: G2Projective, e: BigUint, lamb: BigUint) -> Vec<LiearRes
 
 #[cfg(test)]
 mod test {
-    use ark_bn254::{Fq, Fq2};
+    use ark_bn254::{Fq, Fq2, G1Affine};
     use ark_ec::{AffineRepr, CurveGroup};
-    use ark_ff::Field;
     use ark_std::{end_timer, start_timer};
     use num_bigint::BigUint;
     use num_traits::{FromPrimitive, One};
     use std::str::FromStr;
 
     use super::*;
-    use crate::constant::{g1, g2, E};
+    use crate::{
+        constant::E,
+        dev::{g1, g2},
+    };
 
     #[test]
     fn test_line_double() {

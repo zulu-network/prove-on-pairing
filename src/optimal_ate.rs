@@ -1,6 +1,5 @@
 use crate::constant;
 use crate::constant::MODULUS;
-use crate::fields::Fq12Ext;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
@@ -298,7 +297,7 @@ pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::constant;
+    use crate::{constant, dev};
     use ark_bn254::{Bn254, G1Affine, G2Affine};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};
@@ -307,10 +306,10 @@ mod test {
 
     #[test]
     fn test_bn254_miller_loop() {
-        let Q = constant::g2
+        let Q = dev::g2
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
-        let P = constant::g1
+        let P = dev::g1
             .mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits())
             .into_affine();
 
@@ -326,8 +325,8 @@ mod test {
 
     #[test]
     fn test_native_miller_loop() {
-        let Q = constant::g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
-        let P = constant::g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
+        let Q = dev::g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
+        let P = dev::g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
 
         println!("P:{:?}", P);
         println!("\n Q:{:?}", Q);

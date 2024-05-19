@@ -257,7 +257,7 @@ mod test {
     use num_bigint::BigUint;
     use num_traits::FromPrimitive;
 
-    use crate::constant;
+    use crate::{constant, dev};
 
     use crate::line_precompute::line_function;
     use crate::optimal_ate::miller_loop;
@@ -266,17 +266,17 @@ mod test {
     fn test_pairing_verify_native() {
         // 1. setup pairing: (p1, q1)=(p2,q2)
         //      To check (p1, q1)*(p2,-q2)=1
-        let p1 = constant::g1
+        let p1 = dev::g1
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
-        let p2 = constant::g1
+        let p2 = dev::g1
             .mul_bigint(BigUint::one().to_u64_digits())
             .into_affine();
 
-        let q1 = constant::g2
+        let q1 = dev::g2
             .mul_bigint(BigUint::one().to_u64_digits())
             .into_affine();
-        let q2 = constant::g2
+        let q2 = dev::g2
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
 
@@ -323,17 +323,17 @@ mod test {
     fn test_pairing_verify_full() {
         // 1. setup pairing: (p1, q1)=(p2,q2)
         //      To check (p1, q1)*(p2,-q2)=1
-        let p1 = constant::g1
+        let p1 = dev::g1
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
-        let p2 = constant::g1
+        let p2 = dev::g1
             .mul_bigint(BigUint::one().to_u64_digits())
             .into_affine();
 
-        let q1 = constant::g2
+        let q1 = dev::g2
             .mul_bigint(BigUint::one().to_u64_digits())
             .into_affine();
-        let q2 = constant::g2
+        let q2 = dev::g2
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
 
