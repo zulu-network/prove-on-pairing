@@ -215,9 +215,9 @@ mod test {
         println!("f1: {:?}", f1.to_string());
         println!("f2: {:?}", f2.to_string());
         // 2.3 precompute c,wi
-        let witness = LambdaResidues::compute_lambda_residues(f1.mul(f2));
+        let witness = LambdaResidues::finding_c(f1.mul(f2));
         let c_inv = witness.c.inverse().unwrap();
-
+        println!("c_inv: {:?}", c_inv.to_string());
         // ====================================
         // ===== 2.Prover compute following data.
         // ====================================
@@ -282,7 +282,7 @@ mod test {
         let (f1, f2) = (f1.0, f2.0);
 
         // 2.3 precompute c,wi
-        let witness = LambdaResidues::compute_lambda_residues(f1.mul(f2));
+        let witness = LambdaResidues::finding_c(f1.mul(f2));
         let c_inv = witness.c.inverse().unwrap();
         let verify_res = crate::pairing_verify::verify_pairings(
             vec![p1, p2],

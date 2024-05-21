@@ -20,20 +20,14 @@ pub struct LambdaResidues {
 impl LambdaResidues {
     // Computing λ residues over BN curve
     // Input:
-    //      f: output of a Miller loop
+    //      f: output of a Miller loop.
+    //          It's always be r-th and m′-th residue, but it might not be a cubic residue.
     // Output:
     //      c and wi,
     //      satisfying c^lambda = f * wi
     //
     // Ref: Algorithm 5 of [On Proving Pairings](https://eprint.iacr.org/2024/640.pdf)
-    pub fn compute_lambda_residues(f: Fq12) -> Self {
-        // let r = BigUint::from_str(
-        //     "21888242871839275222246405745257275088548364400416034343698204186575808495617",
-        // )
-        // .unwrap();
-        // let lambda = BigUint::from_str(
-        //     "10486551571378427818905133077457505975146652579011797175399169355881771981095211883813744499745558409789005132135496770941292989421431235276221147148858384772096778432243207188878598198850276842458913349817007302752534892127325269"
-        // ).unwrap();
+    pub fn finding_c(f: Fq12) -> Self {
         let s = 3_u32;
         let exp = MODULUS.pow(12_u32) - 1_u32;
         let h = &exp / params::R.deref();
@@ -46,6 +40,7 @@ impl LambdaResidues {
         let mut prng = ChaCha20Rng::seed_from_u64(0);
         let cofactor_cubic = 3_u32.pow(s - 1) * &t;
 
+        // Find C. See more: 4.3.2 Finding c
         // make f is r-th residue, but it's not cubic residue
         assert_eq!(f.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
         assert_ne!(f.pow(cofactor_cubic.to_u64_digits()), ark_bn254::Fq12::ONE);
@@ -163,10 +158,13 @@ mod test {
     use ark_std::UniformRand;
     use num_bigint::BigUint;
 
-    use crate::params;
+    use crate::{dev, params};
+    use ark_bn254::{Bn254, G1Affine, G2Affine};
+    use ark_ec::pairing::Pairing;
+    use ark_ec::{AffineRepr, CurveGroup};
+    use num_traits::FromPrimitive;
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
-    use std::str::FromStr;
 
     #[test]
     fn test_compute_c_wi() {
@@ -244,5 +242,36 @@ mod test {
         // d-th (cubic) root, say c
         let c = LambdaResidues::tonelli_shanks_cubic(f3, w, s, t, k);
         assert_eq!(c.pow(params::LAMBDA.deref().to_u64_digits()), f * wi);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_finding_c_witn_ark_miller_loop() {
+        let Q = dev::g2
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+        let P = dev::g1
+            .mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits())
+            .into_affine();
+
+        println!("P:{:?}", P);
+        println!("\n Q:{:?}", Q);
+        let actual = Bn254::miller_loop(
+            <G1Affine as Into<<Bn254 as Pairing>::G1Prepared>>::into(P),
+            <G2Affine as Into<<Bn254 as Pairing>::G2Prepared>>::into(Q),
+        );
+
+        let residues = LambdaResidues::finding_c(actual.0);
+    }
+
+    #[test]
+    fn test_finding_c_witn_native_miller_loop() {
+        let Q = dev::g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
+        let P = dev::g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
+
+        println!("P:{:?}", P);
+        println!("\n Q:{:?}", Q);
+        // let actual = NativeMillerLoop::miller_loop(P, Q);
+        // let residues = LambdaResidues::finding_c(actual);
     }
 }
