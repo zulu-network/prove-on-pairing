@@ -83,18 +83,18 @@ mod test {
         assert_eq!(expect, actual);
     }
 
-    #[test]
-    fn test_beta_pi() {
-        for x in params::BETA_PI_1.deref() {
-            println!("beta_pi_1: {:?}", x.to_string());
-        }
-        println!("");
-        for x in params::BETA_PI_1.deref() {
-            println!("beta_pi_2: {:?}", x.to_string());
-        }
-        println!("");
-        for x in params::BETA_PI_3.deref() {
-            println!("beta_pi_3: {:?}", x.to_string());
-        }
-    }
+    // #[test]
+    // fn test_beta_pi() {
+    //     for x in params::BETA_PI_1.deref() {
+    //         println!("beta_pi_1: {:?}", x.to_string());
+    //     }
+    //     println!("");
+    //     for x in params::BETA_PI_1.deref() {
+    //         println!("beta_pi_2: {:?}", x.to_string());
+    //     }
+    //     println!("");
+    //     for x in params::BETA_PI_3.deref() {
+    //         println!("beta_pi_3: {:?}", x.to_string());
+    //     }
+    // }
 }

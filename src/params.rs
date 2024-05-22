@@ -193,7 +193,10 @@ mod test {
 
     #[test]
     fn test_beta() {
-        // passed
         println!("Beta: {:?}", BETA.clone());
+
+        println!("BETA_PI_1_2: {:?}", BETA_PI_1[1].to_string());
+        println!("BETA_PI_1_3: {:?}", BETA_PI_1[2].to_string());
+        println!("BETA_PI_2_2: {:?}", BETA_PI_2[1].to_string());
     }
 }

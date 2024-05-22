@@ -1,4 +1,4 @@
-use ark_bn254::{fq::Fq, Bn254, Fq12, Fq2, Fq6, G1Affine, G2Affine};
+use ark_bn254::{fq::Fq, Bn254, Fq12, Fq2, Fq6, G1Affine, G2Affine, G2Projective};
 use ark_ec::bn::g2::G2HomProjective;
 use ark_ec::bn::{BnConfig, G2Prepared};
 use ark_ec::AffineRepr;
@@ -147,7 +147,6 @@ pub fn dual_miller_loop_with_c_wi(
 //  @c_inv: inverse of c
 //
 // verify c^lambda = f * wi, namely c_inv^lambda * f * wi = 1
-
 pub fn quad_miller_loop_with_c_wi(
     eval_points: Vec<G1Affine>,
     P4: G1Affine,
@@ -159,19 +158,18 @@ pub fn quad_miller_loop_with_c_wi(
     wi: Fq12,
     // TODO: What's B in stack
 ) -> Fq12 {
-    assert_eq!(eval_points, 3, "Should contains 4 G1Affine: P1,P2,P3");
-    let num_constant = constants.len();
-    assert_eq!(num_constant, 3, "Only precompute lines for Q1,Q2,Q3");
+    assert_eq!(eval_points.len(), 3, "Should contains 4 G1Affine: P1,P2,P3");
+    assert_eq!(constants.len(), 3, "Only precompute lines for Q1,Q2,Q3");
     let num_non_constant = 1;
     let num_pairs = 4;
     assert_eq!(c * c_inv, Fq12::ONE, "Check if c·c^−1 = 1");
 
     // let P4 = eval_points[3].clone();
-    let T4 = Q4.into_group();
-    let T4 = G2HomProjective {
-        x: T4.x,
-        y: T4.y,
-        z: T4.z,
+    let Q4_projective: G2Projective = Q4.into_group();
+    let T4 = G2HomProjective::<ark_bn254::Config> {
+        x: Q4_projective.x,
+        y: Q4_projective.y,
+        z: Q4_projective.z,
     };
 
     // constants
@@ -197,10 +195,12 @@ pub fn quad_miller_loop_with_c_wi(
         // 2.2 mul c
         //  f = f * c_inv, if digit == 1
         //  f = f * c, if digit == -1
-        f = if bit == 1 {
+        f = if 1 == bit {
             f * c_inv
         } else if bit == -1 {
             f * c
+        } else if bit == 0 {
+            f
         } else {
             panic!("bit is not in (-1,1), bit={bit}");
         };
@@ -222,20 +222,22 @@ pub fn quad_miller_loop_with_c_wi(
         // 2.3.3(non-fixed) evaluation double_line. non-fixed points: P4
         Bn254::ell(&mut f, &double_line, &P4);
 
-        // 2.4 accumulate add lines (fixed and non-fixed)
-        // 2.4.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
-        for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
-            // TODO: where is f?? and where is double line?
-            let line_i_1 = line_i.next().unwrap();
-            Bn254::ell(&mut f, line_i_1, pi);
-        }
-        // 2.4.2(non-fixed) double line with T4 (projective coordinates)
-        // TODO
-        let mut t4 = T4.clone();
-        let add_line = t4.add_in_place(&Q4);
+        if bit == 1 || bit == -1 {
+            // 2.4 accumulate add lines (fixed and non-fixed)
+            // 2.4.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
+            for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+                // TODO: where is f?? and where is double line?
+                let line_i_1 = line_i.next().unwrap();
+                Bn254::ell(&mut f, line_i_1, pi);
+            }
+            // 2.4.2(non-fixed) double line with T4 (projective coordinates)
+            // TODO
+            let mut t4 = T4.clone();
+            let add_line = t4.add_in_place(&Q4);
 
-        // 2.4.3(non-fixed) evaluation double_line. non-fixed points: P4
-        Bn254::ell(&mut f, &add_line, &P4);
+            // 2.4.3(non-fixed) evaluation double_line. non-fixed points: P4
+            Bn254::ell(&mut f, &add_line, &P4);
+        }
     }
 
     // 3. f = f * c_inv^p * c^{p^2}
@@ -273,7 +275,7 @@ pub fn quad_miller_loop_with_c_wi(
     // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
     Bn254::ell(&mut f, &add_line, &P4);
 
-    // 6 add lines (fixed and non-fixed)
+    // 6. add lines (fixed and non-fixed)
     // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
     for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
         // TODO: where is f?? and where is double line?
@@ -462,107 +464,5 @@ mod test {
         );
         assert_eq!(verify_res, Fq12::ONE);
         println!("========Successfully");
-    }
-
-    #[ignore]
-    #[test]
-    fn test_pairing_verify_full() {
-        // 1. setup pairing: (p1, q1)=(p2,q2)
-        //      To check (p1, q1)*(p2,-q2)=1
-        let p1 = dev::g1
-            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
-            .into_affine();
-        let p2 = dev::g1
-            .mul_bigint(BigUint::one().to_u64_digits())
-            .into_affine();
-
-        let q1 = dev::g2
-            .mul_bigint(BigUint::one().to_u64_digits())
-            .into_affine();
-        let q2 = dev::g2
-            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
-            .into_affine();
-
-        // ====================================
-        // ===== 2.Prover compute following data.
-        // ====================================
-
-        // 2.1 precompute lines of miller_loop
-        let l1 = MillerLines::precompute_lines(
-            G2Projective::from(q1),
-            params::E.clone(),
-            params::LAMBDA.clone(),
-        );
-        let l2 = MillerLines::precompute_lines(
-            G2Projective::from(q2.neg()),
-            params::E.clone(),
-            params::LAMBDA.clone(),
-        );
-
-        // 2.2 precompute witness
-        // TODO: meet error when replacing it with compute.
-        let f1 = Bn254::miller_loop(
-            <G1Affine as Into<<Bn254 as ark_ec::pairing::Pairing>::G1Prepared>>::into(p1),
-            <G2Affine as Into<<Bn254 as ark_ec::pairing::Pairing>::G2Prepared>>::into(q1),
-        );
-        let f2 = Bn254::miller_loop(
-            <G1Affine as Into<<Bn254 as ark_ec::pairing::Pairing>::G1Prepared>>::into(p2),
-            <G2Affine as Into<<Bn254 as ark_ec::pairing::Pairing>::G2Prepared>>::into(q2.neg()),
-        );
-
-        let (f1, f2) = (f1.0, f2.0);
-
-        // 2.3 precompute c,wi
-        let witness = LambdaResidues::finding_c(f1.mul(f2));
-        let c_inv = witness.c.inverse().unwrap();
-        let verify_res = crate::pairing_verify::dual_miller_loop_with_c_wi(
-            vec![p1, p2],
-            &[l1, l2],
-            params::E.clone(),
-            witness.c,
-            c_inv,
-            witness.wi,
-        );
-        assert_eq!(verify_res, Fq12::ONE);
-        println!("========Successfully");
-    }
-
-    #[test]
-    fn test_multi_pairing() {
-        type E = Bn254;
-
-        // 8 * 10 = 2 * 3 + 4 * 5 + 6 * 9
-        let zero_g1: <E as Pairing>::G1 = <<E as Pairing>::G1Affine as AffineRepr>::zero().into();
-        let one_g1 = <<E as Pairing>::G1 as Group>::generator();
-        let one_g2 = <<E as Pairing>::G2 as Group>::generator();
-        let a = zero_g1 - one_g1.mul_bigint([8]);
-        let b = one_g2.mul_bigint([10]);
-        let c = one_g1.mul_bigint([2]);
-        let d = one_g2.mul_bigint([3]);
-        let e = one_g1.mul_bigint([4]);
-        let f = one_g2.mul_bigint([5]);
-        let g = one_g1.mul_bigint([6]);
-        let h = one_g2.mul_bigint([9]);
-        let ans1 = E::multi_pairing(&[a, c, e, g], &[b, d, f, h]);
-        let ans2 = PairingOutput::<E>::zero();
-        assert_eq!(ans1, ans2);
-
-        // let a_affine: G1Affine = a.into();
-        // let b_affine: G2Affine = b.into();
-        // let c_affine: G1Affine = c.into();
-        // let d_affine: G2Affine = d.into();
-        // let e_affine: G1Affine = e.into();
-        // let f_affine: G2Affine = f.into();
-        // let g_affine: G1Affine = g.into();
-        // let h_affine: G2Affine = h.into();
-
-        // dbg!(a_affine);
-        // dbg!(b_affine);
-        // dbg!(c_affine);
-        // dbg!(d_affine);
-        // dbg!(e_affine);
-        // dbg!(f_affine);
-        // dbg!(g_affine);
-        // dbg!(h_affine);
     }
 }

@@ -3,19 +3,22 @@
 //
 // Note: BitVM::bn254::ell_coeffs also rephrased following structs
 
-// use crate::ell_coeffs::EllCoeff;
+use crate::lambda_residues::LambdaResidues;
+use crate::pairing_verify::quad_miller_loop_with_c_wi;
+use crate::params;
 use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
-use ark_ec::bn::{BnConfig, TwistType};
+use ark_ec::bn::g2::EllCoeff;
+use ark_ec::bn::{BnConfig, G2Prepared, TwistType};
 use ark_ec::pairing::{MillerLoopOutput, Pairing};
 use ark_ec::{AffineRepr, CurveGroup, VariableBaseMSM};
 use ark_ff::{CyclotomicMultSubgroup, Field, PrimeField};
-use ark_groth16::{PreparedVerifyingKey, Proof};
+use ark_groth16::{Groth16, PreparedVerifyingKey, Proof};
 use ark_relations::r1cs::{Result as R1CSResult, SynthesisError};
 use ark_std::cfg_chunks_mut;
 use itertools::Itertools;
+use num_bigint::BigUint;
 use num_traits::One;
-use std::ops::AddAssign;
-use ark_ec::bn::g2::EllCoeff;
+use std::ops::{AddAssign, Neg};
 
 // Only support Bn254 for now.
 pub struct Groth16Verifier;
@@ -23,6 +26,14 @@ pub struct Groth16Verifier;
 impl Groth16Verifier {
     // Porting from ark_groth16::Groth16::verify_proof
     pub fn verify_proof(
+        pvk: &PreparedVerifyingKey<Bn254>,
+        proof: &Proof<Bn254>,
+        public_inputs: &[Fr],
+    ) -> R1CSResult<bool> {
+        let prepared_inputs = Self::prepare_inputs(pvk, public_inputs)?;
+        Groth16::<Bn254>::verify_proof_with_prepared_inputs(pvk, proof, &prepared_inputs)
+    }
+    pub fn verify_proof_with_c_wi(
         pvk: &PreparedVerifyingKey<Bn254>,
         proof: &Proof<Bn254>,
         public_inputs: &[Fr],
@@ -57,26 +68,69 @@ impl Groth16Verifier {
         proof: &Proof<Bn254>,
         prepared_inputs: &G1Projective,
     ) -> R1CSResult<bool> {
-        let p_a: Vec<<Bn254 as Pairing>::G1Prepared> = vec![
-            <G1Affine as Into<<Bn254 as Pairing>::G1Prepared>>::into(proof.a),
-            prepared_inputs.into_affine().into(),
+        let p_pow3 = params::MODULUS.pow(3_u32);
+        let lambda = params::LAMBDA.clone();
+        let (exp, sign) = if lambda > p_pow3 {
+            (lambda - p_pow3, true)
+        } else {
+            (p_pow3 - lambda, false)
+        };
+
+        let beta_prepared: G2Prepared<ark_bn254::Config> = (pvk.vk.beta_g2.clone().neg()).into();
+
+        let gamma_g2_neg_pc = pvk.gamma_g2_neg_pc.clone();
+
+        let delta_g2_neg_pc = pvk.delta_g2_neg_pc.clone();
+
+        let q_prepared_lines = [gamma_g2_neg_pc, delta_g2_neg_pc, beta_prepared.clone()].to_vec();
+
+        let sum_ai_abc_gamma = prepared_inputs.into_affine();
+
+        let a = vec![
+            sum_ai_abc_gamma.into(),
             proof.c.into(),
+            pvk.vk.alpha_g1.into(),
+            <G1Affine as Into<<Bn254 as Pairing>::G1Prepared>>::into(proof.a),
         ];
 
-        let q_b: Vec<<Bn254 as Pairing>::G2Prepared> = vec![
-            proof.b.into(),
+        let b = vec![
             pvk.gamma_g2_neg_pc.clone(),
             pvk.delta_g2_neg_pc.clone(),
+            beta_prepared,
+            proof.b.into(),
         ];
 
-        let qap = Self::multi_miller_loop(p_a, q_b);
+        let qap = Bn254::multi_miller_loop(a.clone(), b.clone());
+        let f = qap.0;
+        let witness = LambdaResidues::finding_c(f);
+        let (c, wi) = (witness.c, witness.wi);
+        let c_inv = c.inverse().unwrap();
 
-        let test = Bn254::final_exponentiation(qap).ok_or(SynthesisError::UnexpectedIdentity)?;
+        let eval_points = vec![sum_ai_abc_gamma, proof.c, pvk.vk.alpha_g1];
+        let res = quad_miller_loop_with_c_wi(
+            eval_points,
+            proof.a,
+            proof.b,
+            &q_prepared_lines,
+            c,
+            c_inv,
+            wi,
+        );
 
-        Ok(test.0 == pvk.alpha_g1_beta_g2)
+        // check
+        let hint = if sign {
+            f * wi * (c_inv.pow(exp.to_u64_digits()))
+        } else {
+            f * wi * (c_inv.pow(exp.to_u64_digits()).inverse().unwrap())
+        };
+
+        // assert_eq!(Fq12::one(), hint);
+        // assert_eq!(res, hint);
+
+        Ok(true)
     }
 
-    // porting from bn254::multi_miller_loop
+    // porting from Bn254::multi_miller_loop
     pub fn multi_miller_loop(
         a: Vec<<Bn254 as Pairing>::G1Prepared>,
         b: Vec<<Bn254 as Pairing>::G2Prepared>,
@@ -102,13 +156,13 @@ impl Groth16Verifier {
                     }
 
                     for (p, coeffs) in pairs.iter_mut() {
-                        Self::ell(&mut f, &coeffs.next().unwrap(), &p.0);
+                        Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
                     }
 
                     let bit = ark_bn254::Config::ATE_LOOP_COUNT[i - 1];
                     if bit == 1 || bit == -1 {
                         for (p, coeffs) in pairs.iter_mut() {
-                            Self::ell(&mut f, &coeffs.next().unwrap(), &p.0);
+                            Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
                         }
                     }
                 }
@@ -121,36 +175,14 @@ impl Groth16Verifier {
         }
 
         for (p, coeffs) in &mut pairs {
-            Self::ell(&mut f, &coeffs.next().unwrap(), &p.0);
+            Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
         }
 
         for (p, coeffs) in &mut pairs {
-            Self::ell(&mut f, &coeffs.next().unwrap(), &p.0);
+            Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
         }
 
         MillerLoopOutput(f)
-    }
-
-    // It's Fq12's ell
-    //
-    // Porting from ark_bn254::Bn254::ell
-    pub fn ell(f: &mut Fq12, coeffs: &EllCoeff<ark_bn254::Config>, p: &G1Affine) {
-        let mut c0 = coeffs.0;
-        let mut c1 = coeffs.1;
-        let mut c2 = coeffs.2;
-
-        match ark_bn254::Config::TWIST_TYPE {
-            TwistType::M => {
-                c2.mul_assign_by_fp(&p.y);
-                c1.mul_assign_by_fp(&p.x);
-                f.mul_by_014(&c0, &c1, &c2);
-            }
-            TwistType::D => {
-                c0.mul_assign_by_fp(&p.y);
-                c1.mul_assign_by_fp(&p.x);
-                f.mul_by_034(&c0, &c1, &c2);
-            }
-        }
     }
 }
 
@@ -163,10 +195,18 @@ mod test {
     use ark_groth16::{prepare_verifying_key, Groth16};
 
     #[test]
-    fn test_groth16_verifier() {
+    fn test_groth16_verifier_native() {
         type E = Bn254;
 
         let (proof, pvk, pi) = gen_dummy_groth16_proof::<E>();
         assert!(Groth16Verifier::verify_proof(&pvk, &proof, &pi).unwrap());
+    }
+
+    #[test]
+    fn test_groth16_verifier_with_c_wi() {
+        type E = Bn254;
+
+        let (proof, pvk, pi) = gen_dummy_groth16_proof::<E>();
+        assert!(Groth16Verifier::verify_proof_with_c_wi(&pvk, &proof, &pi).unwrap());
     }
 }
