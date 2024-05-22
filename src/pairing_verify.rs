@@ -25,9 +25,9 @@ use crate::{
 //  @c_inv: inverse of c
 //
 // verify c^lambda = f * wi, namely c_inv^lambda * f * wi = 1
-pub fn verify_pairings(
+pub fn dual_miller_loop_with_c_wi(
     eval_points: Vec<G1Affine>,
-    lines: &[Vec<(Fq2, Fq2)>; 2],
+    lines: &[Vec<(Fq2, Fq2)>],
     e: BigUint,
     c: Fq12,
     c_inv: Fq12,
@@ -148,7 +148,7 @@ mod test {
     use crate::{dev, params};
 
     #[test]
-    fn test_pairing_verify_native() {
+    fn test_dual_miller_loop_with_c_wi_fixed() {
         // 1. setup pairing: (p1, q1)=(p2,q2)
         //      To check (p1, q1)*(p2,-q2)=1
         let p1 = dev::g1
@@ -196,9 +196,98 @@ mod test {
         // ====================================
         // ===== 2.Prover compute following data.
         // ====================================
-        let verify_res = verify_pairings(
+        let verify_res = dual_miller_loop_with_c_wi(
             vec![p1, p2],
             &[l1, l2],
+            params::E.clone(),
+            witness.c,
+            c_inv,
+            witness.wi,
+        );
+        assert_eq!(verify_res, Fq12::ONE);
+        println!("========Successfully");
+    }
+
+    #[test]
+    #[ignore]
+    fn test_pairing_verify_native_2() {
+        // 1. setup pairing: (p1, q1)(p3, q3)=(p2,q2)(p4,q4)
+        //      To check (p1, q1)*(p2,-q2)*(p3,q3)*(p4,-q4)=1
+        let p1 = dev::g1
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+        let p2 = dev::g1
+            .mul_bigint(BigUint::one().to_u64_digits())
+            .into_affine();
+
+        let p3 = dev::g1
+            .mul_bigint(BigUint::from_i8(5).unwrap().to_u64_digits())
+            .into_affine();
+        let p4 = dev::g1
+            .mul_bigint(BigUint::one().to_u64_digits())
+            .into_affine();
+
+        let q1 = dev::g2
+            .mul_bigint(BigUint::one().to_u64_digits())
+            .into_affine();
+        let q2 = dev::g2
+            .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
+            .into_affine();
+
+        let q3 = dev::g2
+            .mul_bigint(BigUint::one().to_u64_digits())
+            .into_affine();
+        let q4 = dev::g2
+            .mul_bigint(BigUint::from_i8(5).unwrap().to_u64_digits())
+            .into_affine();
+
+        // ====================================
+        // ===== 2.Prover compute following data.
+        // ====================================
+
+        // 2.1 precompute lines of miller_loop
+        let l1 = MillerLines::precompute_lines(
+            G2Projective::from(q1),
+            params::E.clone(),
+            params::LAMBDA.clone(),
+        );
+        let l2 = MillerLines::precompute_lines(
+            G2Projective::from(q2.neg()),
+            params::E.clone(),
+            params::LAMBDA.clone(),
+        );
+        let l3 = MillerLines::precompute_lines(
+            G2Projective::from(q3),
+            params::E.clone(),
+            params::LAMBDA.clone(),
+        );
+        let l4 = MillerLines::precompute_lines(
+            G2Projective::from(q4.neg()),
+            params::E.clone(),
+            params::LAMBDA.clone(),
+        );
+
+        // 2.2 precompute witness
+        // TODO: meet error when replacing it with compute.
+        let f1 = NativeMillerLoop::miller_loop(G1Projective::from(p1), G2Projective::from(q1));
+        let f2 =
+            NativeMillerLoop::miller_loop(G1Projective::from(p2), G2Projective::from(q2).neg());
+        let f3 = NativeMillerLoop::miller_loop(G1Projective::from(p3), G2Projective::from(q3));
+        let f4 =
+            NativeMillerLoop::miller_loop(G1Projective::from(p4), G2Projective::from(q4).neg());
+
+        println!("f1: {:?}", f1.to_string());
+        println!("f2: {:?}", f2.to_string());
+        // 2.3 precompute c,wi
+        let witness = LambdaResidues::finding_c(f1.mul(f2).mul(f3).mul(f4));
+        let c_inv = witness.c.inverse().unwrap();
+        println!("c_inv: {:?}", c_inv.to_string());
+        // ====================================
+        // ===== 2.Prover compute following data.
+        // ====================================
+        let verify_res = dual_miller_loop_with_c_wi(
+            vec![p1, p2, p3, p4],
+            &[l1, l2, l3, l4],
             params::E.clone(),
             witness.c,
             c_inv,
@@ -259,7 +348,7 @@ mod test {
         // 2.3 precompute c,wi
         let witness = LambdaResidues::finding_c(f1.mul(f2));
         let c_inv = witness.c.inverse().unwrap();
-        let verify_res = crate::pairing_verify::verify_pairings(
+        let verify_res = crate::pairing_verify::dual_miller_loop_with_c_wi(
             vec![p1, p2],
             &[l1, l2],
             params::E.clone(),

@@ -155,6 +155,8 @@ impl NativeMillerLoop {
         Fq12::new(x, y)
     }
 
+    // Compute the miller_loop of (p1,q1)
+    //
     // Native miller loop: With addend of p^3
     pub fn miller_loop(p: G1Projective, q: G2Projective) -> Fq12 {
         let P = p.into_affine();

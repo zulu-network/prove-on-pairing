@@ -7,7 +7,7 @@ use crate::ell_coeffs::EllCoeff;
 use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
 use ark_ec::bn::{BnConfig, TwistType};
 use ark_ec::pairing::{MillerLoopOutput, Pairing};
-use ark_ec::{AffineRepr, CurveGroup};
+use ark_ec::{AffineRepr, CurveGroup, VariableBaseMSM};
 use ark_ff::{CyclotomicMultSubgroup, Field, PrimeField};
 use ark_groth16::{PreparedVerifyingKey, Proof};
 use ark_relations::r1cs::{Result as R1CSResult, SynthesisError};
@@ -40,9 +40,10 @@ impl Groth16Verifier {
         let mut g_ic = pvk.vk.gamma_abc_g1[0].into_group();
 
         // msm(pvk.vk.gamma_abc_g1[1..], public_inputs)
-        for (i, b) in public_inputs.iter().zip(pvk.vk.gamma_abc_g1.iter().skip(1)) {
-            g_ic.add_assign(&b.mul_bigint(i.into_bigint()));
-        }
+        // for (i, b) in public_inputs.iter().zip(pvk.vk.gamma_abc_g1.iter().skip(1)) {
+        //     g_ic.add_assign(&b.mul_bigint(i.into_bigint()));
+        // }
+        let g_ic = g_ic + G1Projective::msm(&pvk.vk.gamma_abc_g1[1..], &public_inputs).unwrap();
 
         Ok(g_ic)
     }
