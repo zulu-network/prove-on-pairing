@@ -24,4 +24,15 @@ ark-groth16 = "*"
 itertools = "0.10.5"
 
 [dev-dependencies]
-ark-bn254 = { version = "0.4.0", default-features = false, features = ["curve"] }
+ark-bn254 = { version = "*", default-features = false, features = ["curve"] }
+
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/zulu-network/arkworks-algebra.git",  branch = "bitvm"}
+ark-ec = { git = "https://github.com/zulu-network/arkworks-algebra.git",  branch = "bitvm"}
+ark-serialize = { git = "https://github.com/zulu-network/arkworks-algebra.git",  branch = "bitvm"}
+ark-poly = { git = "https://github.com/zulu-network/arkworks-algebra.git",  branch = "bitvm"}
+
+#ark-std = { version = "0.4.0", default-features = false }
+#ark-relations = { version = "0.4.0", default-features = false }
+#ark-crypto-primitives = { version = "0.4.0", default-features = false, features = ["snark", "sponge"] }

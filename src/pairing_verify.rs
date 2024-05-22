@@ -1,11 +1,13 @@
-use ark_bn254::{fq::Fq, Fq12, Fq2, Fq6, G1Affine};
+use ark_bn254::{fq::Fq, Bn254, Fq12, Fq2, Fq6, G1Affine, G2Affine};
+use ark_ec::bn::g2::G2HomProjective;
+use ark_ec::bn::{BnConfig, G2Prepared};
 use ark_ec::AffineRepr;
 use ark_ff::Field;
 use ark_std::UniformRand;
 use num_bigint::BigUint;
 use num_traits::One;
 use rand::SeedableRng;
-use rand_chacha::ChaCha20Rng;
+use std::ops::{Mul, Neg};
 use std::str::FromStr;
 
 use crate::lambda_residues::LambdaResidues;
@@ -13,6 +15,7 @@ use crate::params::MODULUS;
 use crate::utils::biguint_to_naf;
 use crate::{
     miller_lines::MillerLines,
+    params,
     utils::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
 };
 
@@ -131,6 +134,170 @@ pub fn dual_miller_loop_with_c_wi(
     f
 }
 
+// To verify e(P1,Q1)*e(P2,Q2)*e(P3,Q3)*e(P4,Q4)=1
+//
+// Here is only support to verify groth16's pairing, which (Q1,Q2,Q3) are fixed, Q4 is non-fixed.
+//
+// params:
+//  @eval_points: [P1,P2,P3]. which has fixed {Q1,Q2,Q3}
+//  @P4: P4
+//  @Q4: Q4
+//  @lines: []precompute miller lines for Qi. Only support fixed Qi.
+//  @c: c^lambda = f*w^i
+//  @c_inv: inverse of c
+//
+// verify c^lambda = f * wi, namely c_inv^lambda * f * wi = 1
+
+pub fn quad_miller_loop_with_c_wi(
+    eval_points: Vec<G1Affine>,
+    P4: G1Affine,
+    Q4: G2Affine,
+    // lines: &[Vec<(Fq2, Fq2)>],
+    constants: &Vec<G2Prepared<ark_bn254::Config>>,
+    c: Fq12,
+    c_inv: Fq12,
+    wi: Fq12,
+    // TODO: What's B in stack
+) -> Fq12 {
+    assert_eq!(eval_points, 3, "Should contains 4 G1Affine: P1,P2,P3");
+    let num_constant = constants.len();
+    assert_eq!(num_constant, 3, "Only precompute lines for Q1,Q2,Q3");
+    let num_non_constant = 1;
+    let num_pairs = 4;
+    assert_eq!(c * c_inv, Fq12::ONE, "Check if c·c^−1 = 1");
+
+    // let P4 = eval_points[3].clone();
+    let T4 = Q4.into_group();
+    let T4 = G2HomProjective {
+        x: T4.x,
+        y: T4.y,
+        z: T4.z,
+    };
+
+    // constants
+    let two_inv = ark_bn254::Fq::one().double().inverse().unwrap();
+
+    // 1. f = c_inv
+    let mut f = c_inv;
+    // TODO add later.
+    // let mut lc = 0_usize;
+
+    let mut constant_iters = constants
+        .iter()
+        .map(|item| item.ell_coeffs.iter())
+        .collect::<Vec<_>>();
+
+    // 2. miller loop part, 6x + 2
+    for i in (1..ark_bn254::Config::ATE_LOOP_COUNT.len()).rev() {
+        let bit = ark_bn254::Config::ATE_LOOP_COUNT[i - 1];
+
+        // 2.1 double: f = f * f
+        f = f.square();
+
+        // 2.2 mul c
+        //  f = f * c_inv, if digit == 1
+        //  f = f * c, if digit == -1
+        f = if bit == 1 {
+            f * c_inv
+        } else if bit == -1 {
+            f * c
+        } else {
+            panic!("bit is not in (-1,1), bit={bit}");
+        };
+
+        // 2.3 accumulate double lines (fixed and non-fixed)
+        // 2.3.1(fixed) f = f^2 * double_line_Q(P). fixed points: P1, P2, P3
+        // TODO where is the f^2?
+        for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+            // TODO: where is f?? and where is double line?
+            let line_i_0 = line_i.next().unwrap();
+            Bn254::ell(&mut f, line_i_0, pi);
+        }
+
+        // 2.3.2(non-fixed) double line with T4 (projective coordinates)
+        // TODO
+        let mut t4 = T4.clone();
+        let double_line = t4.double_in_place(&two_inv);
+
+        // 2.3.3(non-fixed) evaluation double_line. non-fixed points: P4
+        Bn254::ell(&mut f, &double_line, &P4);
+
+        // 2.4 accumulate add lines (fixed and non-fixed)
+        // 2.4.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
+        for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+            // TODO: where is f?? and where is double line?
+            let line_i_1 = line_i.next().unwrap();
+            Bn254::ell(&mut f, line_i_1, pi);
+        }
+        // 2.4.2(non-fixed) double line with T4 (projective coordinates)
+        // TODO
+        let mut t4 = T4.clone();
+        let add_line = t4.add_in_place(&Q4);
+
+        // 2.4.3(non-fixed) evaluation double_line. non-fixed points: P4
+        Bn254::ell(&mut f, &add_line, &P4);
+    }
+
+    // 3. f = f * c_inv^p * c^{p^2}
+    f = f
+        * c_inv.pow(params::MODULUS.to_u64_digits())
+        * c.pow(params::MODULUS.pow(2).to_u64_digits());
+
+    // 4. f = f * wi . scale f
+    f = f * wi;
+
+    // 5 add lines (fixed and non-fixed)
+    // 5.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
+    for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+        // TODO: where is f?? and where is double line?
+        let line_i_1 = line_i.next().unwrap();
+        Bn254::ell(&mut f, line_i_1, pi);
+    }
+    // 5.2 one-time frobenius map to compute phi_Q
+    // 5.2.1  Qx.conjugate * beta^{2 * (p - 1) / 6}
+    let mut Q4_x = Q4.x.clone();
+    // conjugate_in_place: x.c1 -> -x.c1
+    Q4_x.conjugate_in_place();
+    Q4_x = Q4_x.mul(&params::BETA_PI_1[1]);
+
+    // 5.2.2 Qy.conjugate * beta^{3 * (p - 1) / 6}
+    let mut Q4_y = Q4.y.clone();
+    // conjugate_in_place: x.c1 -> -x.c1
+    Q4_y.conjugate_in_place();
+    Q4_y = Q4_y.mul(&params::BETA_PI_1[2]);
+
+    // 5.3(non-fixed) add line with T4 and phi(Q)
+    let phi_Q = G2Affine::new(Q4_x, Q4_y);
+    let mut t4 = T4.clone();
+    let add_line = t4.add_in_place(&phi_Q);
+    // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
+    Bn254::ell(&mut f, &add_line, &P4);
+
+    // 6 add lines (fixed and non-fixed)
+    // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
+    for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+        // TODO: where is f?? and where is double line?
+        let line_i_1 = line_i.next().unwrap();
+        Bn254::ell(&mut f, line_i_1, pi);
+    }
+    // 6.2 two-time frobenius map to compute phi_Q
+    // 6.2.1  Qx * beta^{2 * (p^2 - 1) / 6}
+    let mut Q4_x = Q4.x.clone();
+    Q4_x = Q4_x.mul(&params::BETA_PI_2[1]);
+
+    // 6.2.2 -Qy
+    let Q4_y = Q4.y.clone().neg();
+
+    // 6.3(non-fixed) add line with T4 and phi(Q)
+    let phi_Q = G2Affine::new(Q4_x, Q4_y);
+    let mut t4 = T4.clone();
+    let add_line = t4.add_in_place(&phi_Q);
+    // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
+    Bn254::ell(&mut f, &add_line, &P4);
+
+    f
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -210,7 +377,7 @@ mod test {
 
     #[test]
     #[ignore]
-    fn test_pairing_verify_native_2() {
+    fn test_dual_miller_loop_with_c_wi_fixed_with_4_point() {
         // 1. setup pairing: (p1, q1)(p3, q3)=(p2,q2)(p4,q4)
         //      To check (p1, q1)*(p2,-q2)*(p3,q3)*(p4,-q4)=1
         let p1 = dev::g1

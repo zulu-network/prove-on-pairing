@@ -1,9 +1,9 @@
 #[cfg(test)]
 pub mod dev;
-pub mod ell_coeffs;
+// pub mod ell_coeffs;
 #[cfg(test)]
-pub mod groth16;
-mod groth16_verifier;
+// pub mod groth16;
+// mod groth16_verifier;
 pub mod lambda_residues;
 pub mod miller_lines;
 pub mod optimal_ate;

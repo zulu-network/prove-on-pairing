@@ -3,7 +3,7 @@
 //
 // Note: BitVM::bn254::ell_coeffs also rephrased following structs
 
-use crate::ell_coeffs::EllCoeff;
+// use crate::ell_coeffs::EllCoeff;
 use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
 use ark_ec::bn::{BnConfig, TwistType};
 use ark_ec::pairing::{MillerLoopOutput, Pairing};
@@ -15,6 +15,7 @@ use ark_std::cfg_chunks_mut;
 use itertools::Itertools;
 use num_traits::One;
 use std::ops::AddAssign;
+use ark_ec::bn::g2::EllCoeff;
 
 // Only support Bn254 for now.
 pub struct Groth16Verifier;
@@ -76,7 +77,7 @@ impl Groth16Verifier {
     }
 
     // porting from bn254::multi_miller_loop
-    fn multi_miller_loop(
+    pub fn multi_miller_loop(
         a: Vec<<Bn254 as Pairing>::G1Prepared>,
         b: Vec<<Bn254 as Pairing>::G2Prepared>,
     ) -> MillerLoopOutput<Bn254> {
@@ -133,7 +134,7 @@ impl Groth16Verifier {
     // It's Fq12's ell
     //
     // Porting from ark_bn254::Bn254::ell
-    fn ell(f: &mut Fq12, coeffs: &EllCoeff, p: &G1Affine) {
+    pub fn ell(f: &mut Fq12, coeffs: &EllCoeff<ark_bn254::Config>, p: &G1Affine) {
         let mut c0 = coeffs.0;
         let mut c1 = coeffs.1;
         let mut c2 = coeffs.2;
