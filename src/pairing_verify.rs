@@ -16,7 +16,13 @@ use crate::{
     utils::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
 };
 
-// Inputs:
+// To verify e(P1,Q1)=e(P2,Q2), which equal e(P1,Q1)*(P2,-Q2)=1
+//
+// params:
+//  @eval_points: Pi points
+//  @lines: precompute miller lines for Qi. Only support fixed Qi.
+//  @c: c^lambda = f*w^i
+//  @c_inv: inverse of c
 //
 // verify c^lambda = f * wi, namely c_inv^lambda * f * wi = 1
 pub fn verify_pairings(
@@ -27,72 +33,41 @@ pub fn verify_pairings(
     c_inv: Fq12,
     wi: Fq12,
 ) -> Fq12 {
+    // all of  them are fixed-point.
     assert_eq!(eval_points.len(), lines.len());
+    // 1. assert c · c^−1 = 1
     assert_eq!(c * c_inv, Fq12::ONE);
 
+    // 2. f = c_inv
     let mut lc = 0_usize;
     let mut f = c_inv;
+
     let mut naf_digits = biguint_to_naf(e);
     naf_digits.reverse();
     naf_digits.remove(0);
 
-    let po1 = 9999;
     for (i, digit) in naf_digits.into_iter().enumerate() {
-        if i == po1 {
-            println!("before f.square, f = {}\n\n", f);
-        }
         f = f.square();
-        if i == po1 {
-            println!("after f.square, f = {}\n\n", f);
-        }
+
         // update c^lambda
         if digit.pow(2) == 1 {
             f = if digit == 1 { f * c_inv } else { f * c };
-            if i == po1 {
-                dbg!(digit);
-                println!("update c^lambda f = {}\n\n", f);
-            }
-        } else {
-            if i == po1 {
-                println!("update c^lambda f = {}\n\n", f);
-            }
         }
+
         for (&P, L) in eval_points.iter().zip(lines) {
             let (alpha, bias) = L[lc];
-            if i == po1 {
-                println!("alpha = {:?}\n", alpha.to_string());
-                println!("bias = {:?}\n\n", bias.to_string());
-            }
+
             let le = MillerLines::line_evaluation(alpha, bias, P);
-            if i == po1 {
-                println!(
-                    "after line_evaluation le.x = {:?}\nle.y={:?}\nle.z={:?}\n\n",
-                    le.0.to_string(),
-                    le.1.to_string(),
-                    le.2.to_string()
-                );
-            }
+
             f = MillerLines::mul_line_base(f, le.0, le.1, le.2);
-            if i == po1 {
-                println!("after mul_line_base1 f = {}\n\n", f);
-            }
 
             if digit.pow(2) == 1 {
                 let (alpha, bias) = L[lc + 1];
                 let le = MillerLines::line_evaluation(alpha, bias, P);
                 f = MillerLines::mul_line_base(f, le.0, le.1, le.2);
-                if i == po1 {
-                    println!("after mul_line_base2 f = {}\n\n", f);
-                }
-            } else {
-                if i == po1 {
-                    println!("after mul_line_base2 f = {}\n\n", f);
-                }
             }
         }
-        if i == po1 {
-            println!("after for loop f = {}", f);
-        }
+
         lc = if digit == 0 { lc + 1 } else { lc + 2 };
     }
 

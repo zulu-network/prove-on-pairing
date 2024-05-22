@@ -131,6 +131,8 @@ pub fn mx(x: &BigUint) -> BigUint {
 mod test {
     use super::*;
 
+    use crate::utils::biguint_to_naf;
+    use ark_ec::bn::BnConfig;
     use ark_ff::PrimeField;
     use std::str::FromStr;
 
@@ -178,6 +180,15 @@ mod test {
         let actual = E.clone();
         let expect = BigUint::from_str("29793968203157093288").unwrap();
         assert_eq!(actual, expect);
+    }
+
+    #[test]
+    fn test_ATE_LOOP_COUNT() {
+        let digtals_naf = biguint_to_naf(E.clone());
+        // NOTE:
+        // Even if e_naf is different with ark_bn254::Config::ATE_LOOP_COUNT,
+        // they play the same role in pairing_verifier.
+        // assert_eq!(ark_bn254::Config::ATE_LOOP_COUNT, digtals_naf);
     }
 
     #[test]

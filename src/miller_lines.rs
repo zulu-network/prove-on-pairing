@@ -46,8 +46,9 @@ impl MillerLines {
         (alpha, bias)
     }
 
-    // NOTE: point can't equal with other.
+    // NOTE: point != other. as (x2 - x2) can't be zero.
     fn line_add(point: &G2Affine, other: &G2Affine) -> MillerLinesRes {
+        assert_ne!(point, other);
         let (x1, y1) = (point.x, point.y);
         let (x2, y2) = (other.x, other.y);
 
@@ -57,6 +58,12 @@ impl MillerLines {
         let bias = y1 - alpha * x1;
         (alpha, bias)
     }
+
+    // Compute Q*e
+    //
+    // @Q: Point
+    // @e: See more on params.
+    pub fn double_and_add(Q: G2Projective, e: BigUint) {}
 
     // Indexer for fixed point Q
     // cache line line_function for [6x + 2 + p - p^2 + p^3]Q
@@ -73,14 +80,14 @@ impl MillerLines {
         let mut T = Q.clone();
 
         // 1. double-add part, 6x + 2
-        naf_digits.iter().enumerate().for_each(|(i, digit)| {
+        for (i, digit) in naf_digits.into_iter().enumerate() {
             let double_res = MillerLines::line_double(&T.into_affine());
             line_vec.push(double_res);
 
             T = T.double();
             let digtil_pow2 = digit * digit;
             if digtil_pow2 == 1 {
-                let qt = if 1 == *digit {
+                let qt = if 1 == digit {
                     Q.clone()
                 } else {
                     Q.clone().neg()
@@ -90,7 +97,7 @@ impl MillerLines {
                 T = T.add(qt);
                 line_vec.push(qt_double_res);
             }
-        });
+        }
         assert_eq!(T, Q.into_affine().mul_bigint(e.to_u64_digits()));
 
         // 2. frobenius map part, p - p^2 + p^3
