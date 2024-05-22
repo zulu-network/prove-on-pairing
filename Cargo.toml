@@ -20,7 +20,8 @@ ark-bn254 = { version = "0.4.0", features = ["curve"] }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 
+ark-groth16 = "*"
+itertools = "0.10.5"
 
 [dev-dependencies]
 ark-bn254 = { version = "0.4.0", default-features = false, features = ["curve"] }
-ark-groth16 = "*"
