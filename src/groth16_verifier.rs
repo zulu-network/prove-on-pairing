@@ -92,7 +92,6 @@ impl Groth16Verifier {
             pvk.vk.alpha_g1.into(),
             <G1Affine as Into<<Bn254 as Pairing>::G1Prepared>>::into(proof.a),
         ];
-
         let b = vec![
             pvk.gamma_g2_neg_pc.clone(),
             pvk.delta_g2_neg_pc.clone(),
@@ -100,8 +99,10 @@ impl Groth16Verifier {
             proof.b.into(),
         ];
 
+        // precompute lines
         let qap = Bn254::multi_miller_loop(a.clone(), b.clone());
         let f = qap.0;
+        // finding_c
         let witness = LambdaResidues::finding_c(f);
         let (c, wi) = (witness.c, witness.wi);
         let c_inv = c.inverse().unwrap();
@@ -124,8 +125,9 @@ impl Groth16Verifier {
             f * wi * (c_inv.pow(exp.to_u64_digits()).inverse().unwrap())
         };
 
-        // assert_eq!(Fq12::one(), hint);
-        // assert_eq!(res, hint);
+        let p_pow3 = params::MODULUS.pow(3_u32);
+        assert_eq!(hint, c.pow(p_pow3.to_u64_digits()));
+        assert_eq!(res, hint);
 
         Ok(true)
     }
