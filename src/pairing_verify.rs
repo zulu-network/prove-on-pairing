@@ -224,7 +224,12 @@ pub fn quad_miller_loop_with_c_wi(
                 Bn254::ell(&mut f, line_i_1, pi);
             }
             // 2.4.2(non-fixed) double line with T4 (projective coordinates)
-            let add_line = T4.add_in_place(&Q4);
+            let add_line = if bit == 1 {
+                T4.add_in_place(&Q4)
+            } else {
+                // }else if bit == -1 {
+                T4.add_in_place(&Q4.neg())
+            };
 
             // 2.4.3(non-fixed) evaluation double_line. non-fixed points: P4
             Bn254::ell(&mut f, &add_line, &P4);
@@ -268,8 +273,8 @@ pub fn quad_miller_loop_with_c_wi(
     // 6.2 two-time frobenius map to compute phi_Q
     //     compute phi_Q_2 with phi_Q
     // mul_by_char: used to q's frob...map.
-    let phi_Q_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
-
+    let mut phi_Q_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
+    phi_Q_2.y = phi_Q_2.y.neg();
     let add_line = T4.add_in_place(&phi_Q_2);
     println!("6.2.f: {:?}", f.to_string());
 

@@ -67,6 +67,9 @@ pub fn fq12_to_frobenius_p3(mut q12: Fq12) -> Fq12 {
 mod test {
     use super::*;
     use crate::params;
+    use ark_bn254::{G1Affine, G2Affine};
+    use ark_ec::AffineRepr;
+    use ark_std::{test_rng, UniformRand};
     use std::ops::Deref;
 
     #[test]
@@ -84,24 +87,20 @@ mod test {
 
         assert_eq!(expect, actual);
     }
-
-    // #[test]
-    // fn test_beta_pi() {
-    //     for x in params::BETA_PI_1.deref() {
-    //         println!("beta_pi_1: {:?}", x.to_string());
-    //     }
-    //     println!("");
-    //     for x in params::BETA_PI_1.deref() {
-    //         println!("beta_pi_2: {:?}", x.to_string());
-    //     }
-    //     println!("");
-    //     for x in params::BETA_PI_3.deref() {
-    //         println!("beta_pi_3: {:?}", x.to_string());
-    //     }
-    // }
-
+    //
     // #[test]
     // fn test_home_projective_and_projective(){
-    //     let affine =
+    //     let mut rng = test_rng();
+    //
+    //     let p = G1Affine::rand(&mut rng);
+    //     let t = G2Affine::rand(&mut rng).into_group();
+    //     let q = G2Affine::rand(&mut rng);
+    //
+    //     let mut expect = G2HomProjective {
+    //         x: t.x,
+    //         y: t.y,
+    //         z: t.z,
+    //     };
+    //     expect.add_in_place(&q);
     // }
 }
