@@ -124,6 +124,7 @@ impl Groth16Verifier {
 
         let p_pow3 = params::MODULUS.pow(3_u32);
         assert_eq!(hint, c.pow(p_pow3.to_u64_digits()));
+        println!("final_f: {:?}", res.to_string());
         assert_eq!(res, hint);
 
         Ok(true)
