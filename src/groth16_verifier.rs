@@ -105,7 +105,7 @@ impl Groth16Verifier {
 
         let eval_points = vec![sum_ai_abc_gamma, proof.c, pvk.vk.alpha_g1];
 
-        let res = quad_miller_loop_with_c_wi(
+        let final_f = quad_miller_loop_with_c_wi(
             eval_points,
             proof.a,
             proof.b,
@@ -124,8 +124,8 @@ impl Groth16Verifier {
 
         let p_pow3 = params::MODULUS.pow(3_u32);
         assert_eq!(hint, c.pow(p_pow3.to_u64_digits()));
-        println!("final_f: {:?}", res.to_string());
-        assert_eq!(res, hint);
+        println!("final_f: {:?}", final_f.to_string());
+        assert_eq!(final_f, hint);
 
         Ok(true)
     }

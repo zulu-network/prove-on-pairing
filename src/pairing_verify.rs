@@ -153,19 +153,19 @@ pub fn quad_miller_loop_with_c_wi(
     P4: G1Affine,
     Q4: G2Affine,
     // lines: &[Vec<(Fq2, Fq2)>],
-    constants: &Vec<G2Prepared<ark_bn254::Config>>,
+    lines: &Vec<G2Prepared<ark_bn254::Config>>,
     c: Fq12,
     c_inv: Fq12,
     wi: Fq12,
     // TODO: What's B in stack
 ) -> Fq12 {
     assert_eq!(eval_points.len(), 3, "Should contains 4 G1Affine: P1,P2,P3");
-    assert_eq!(constants.len(), 3, "Only precompute lines for Q1,Q2,Q3");
+    assert_eq!(lines.len(), 3, "Only precompute lines for Q1,Q2,Q3");
     assert_eq!(c * c_inv, Fq12::ONE, "Check if c·c^−1 = 1");
 
     // let P4 = eval_points[3].clone();
     let Q4_projective: G2Projective = Q4.into_group();
-    let T4 = G2HomProjective::<ark_bn254::Config> {
+    let mut T4 = G2HomProjective::<ark_bn254::Config> {
         x: Q4_projective.x,
         y: Q4_projective.y,
         z: Q4_projective.z,
@@ -178,7 +178,7 @@ pub fn quad_miller_loop_with_c_wi(
     let mut f = c_inv;
     println!("1.f: {:?}", f.to_string());
 
-    let mut constant_iters = constants
+    let mut lines_iters = lines
         .iter()
         .map(|item| item.ell_coeffs.iter())
         .collect::<Vec<_>>();
@@ -205,15 +205,13 @@ pub fn quad_miller_loop_with_c_wi(
 
         // 2.3 accumulate double lines (fixed and non-fixed)
         // 2.3.1(fixed) f = f * double_line_Q(P). fixed points: P1, P2, P3
-        for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+        for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
             let line_i_0 = line_i.next().unwrap();
             Bn254::ell(&mut f, line_i_0, pi);
         }
 
         // 2.3.2(non-fixed) double line with T4 (projective coordinates)
-        // TODO
-        let mut t4 = T4.clone();
-        let double_line = t4.double_in_place(&two_inv); // TODO: check if the param is 1/2
+        let double_line = T4.double_in_place(&two_inv); // TODO: check if the param is 1/2
 
         // 2.3.3(non-fixed) evaluation double_line. non-fixed points: P4
         Bn254::ell(&mut f, &double_line, &P4);
@@ -221,13 +219,12 @@ pub fn quad_miller_loop_with_c_wi(
         if bit == 1 || bit == -1 {
             // 2.4 accumulate add lines (fixed and non-fixed)
             // 2.4.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
-            for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+            for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
                 let line_i_1 = line_i.next().unwrap();
                 Bn254::ell(&mut f, line_i_1, pi);
             }
             // 2.4.2(non-fixed) double line with T4 (projective coordinates)
-            let mut t4 = T4.clone();
-            let add_line = t4.add_in_place(&Q4);
+            let add_line = T4.add_in_place(&Q4);
 
             // 2.4.3(non-fixed) evaluation double_line. non-fixed points: P4
             Bn254::ell(&mut f, &add_line, &P4);
@@ -247,7 +244,7 @@ pub fn quad_miller_loop_with_c_wi(
 
     // 5 add lines (fixed and non-fixed)
     // 5.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
-    for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+    for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
         let line_i_1 = line_i.next().unwrap();
         Bn254::ell(&mut f, line_i_1, pi);
     }
@@ -255,8 +252,7 @@ pub fn quad_miller_loop_with_c_wi(
     //     compute phi(Q) with Q4
     let phi_Q = mul_by_char::<ark_bn254::Config>(Q4.clone());
 
-    let mut t4 = T4.clone();
-    let add_line = t4.add_in_place(&phi_Q);
+    let add_line = T4.add_in_place(&phi_Q);
 
     // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
     Bn254::ell(&mut f, &add_line, &P4);
@@ -264,7 +260,7 @@ pub fn quad_miller_loop_with_c_wi(
 
     // 6. add lines (fixed and non-fixed)
     // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
-    for (line_i, pi) in constant_iters.iter_mut().zip(eval_points.iter()) {
+    for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
         // TODO: where is f?? and where is double line?
         let line_i_1 = line_i.next().unwrap();
         Bn254::ell(&mut f, line_i_1, pi);
@@ -274,14 +270,14 @@ pub fn quad_miller_loop_with_c_wi(
     // mul_by_char: used to q's frob...map.
     let phi_Q_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
 
-    let mut t4 = T4.clone();
-    let add_line = t4.add_in_place(&phi_Q_2);
+    let add_line = T4.add_in_place(&phi_Q_2);
     println!("6.2.f: {:?}", f.to_string());
 
     // 6.3(non-fixed) evaluation add_lin. non-fixed points: P4
     Bn254::ell(&mut f, &add_line, &P4);
     println!("6.3.f: {:?}", f.to_string());
 
+    // return final_f
     f
 }
 
