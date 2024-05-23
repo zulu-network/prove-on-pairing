@@ -24,7 +24,6 @@ pub fn quad_miller_loop_with_c_wi(
     eval_points: Vec<G1Affine>,
     P4: G1Affine,
     Q4: G2Affine,
-    // lines: &[Vec<(Fq2, Fq2)>],
     lines: &Vec<G2Prepared<ark_bn254::Config>>,
     c: Fq12,
     c_inv: Fq12,
@@ -119,10 +118,11 @@ pub fn quad_miller_loop_with_c_wi(
         let line_i_1 = line_i.next().unwrap();
         Bn254::ell(&mut f, line_i_1, pi);
     }
-    // 5.2 one-time frobenius map to compute phi_Q
+    // 5.2(non-fixed) one-time frobenius map to compute phi_Q
     //     compute phi(Q) with Q4
     let phi_Q = mul_by_char::<ark_bn254::Config>(Q4.clone());
 
+    // 5.3(non-fixed) add line with phi_Q
     let add_line = T4.add_in_place(&phi_Q);
 
     // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
@@ -140,9 +140,11 @@ pub fn quad_miller_loop_with_c_wi(
     // mul_by_char: used to q's frob...map.
     let mut phi_Q_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
     phi_Q_2.y = phi_Q_2.y.neg();
+
+    // 6.3 add line with phi_Q_2
     let add_line = T4.add_in_place(&phi_Q_2);
 
-    // 6.3(non-fixed) evaluation add_lin. non-fixed points: P4
+    // 6.4 evaluation add_lin. non-fixed points: P4
     Bn254::ell(&mut f, &add_line, &P4);
 
     // return final_f
