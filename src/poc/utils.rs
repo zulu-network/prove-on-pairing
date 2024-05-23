@@ -127,14 +127,16 @@ mod test {
 
         // ==== B. Compute phi_Q_2
         let mut actual_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
+        actual_2.y = actual_2.y.neg();
 
         // 2. one-time frobenius map to compute phi_Q
         // 2.1  Qx * beta^{2 * (p^2 - 1) / 6}
         let mut Q4_x = Q4.x.clone();
         Q4_x = Q4_x.mul(&params::BETA_PI_2[1]);
 
-        // 2.2 -Qy
-        let Q4_y = Q4.y.clone().neg();
+        // 2.2 Qy
+        // let Q4_y = Q4.y.clone().neg();
+        let Q4_y = Q4.y.clone();
 
         // 2.3(non-fixed) add line with T4 and phi(Q)
         let phi_Q_2 = G2Affine::new(Q4_x, Q4_y);

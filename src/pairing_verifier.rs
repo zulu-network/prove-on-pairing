@@ -139,7 +139,7 @@ pub fn quad_miller_loop_with_c_wi(
     //     compute phi_Q_2 with phi_Q
     // mul_by_char: used to q's frob...map.
     let mut phi_Q_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
-    phi_Q_2.y = phi_Q_2.y.neg();
+    phi_Q_2.y.neg_in_place();
 
     // 6.3 add line with phi_Q_2
     let add_line = T4.add_in_place(&phi_Q_2);
