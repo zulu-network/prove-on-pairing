@@ -73,6 +73,7 @@ pub fn dual_miller_loop_with_c_wi(
 
         lc = if digit == 0 { lc + 1 } else { lc + 2 };
     }
+    println!("2.f: {:?}", f.to_string());
 
     // update c^lambda
     println!("before fq12_to_frobenius f = {}\n\n", f);
@@ -175,6 +176,7 @@ pub fn quad_miller_loop_with_c_wi(
 
     // 1. f = c_inv
     let mut f = c_inv;
+    println!("1.f: {:?}", f.to_string());
 
     let mut constant_iters = constants
         .iter()
@@ -231,14 +233,17 @@ pub fn quad_miller_loop_with_c_wi(
             Bn254::ell(&mut f, &add_line, &P4);
         }
     }
+    println!("2.f: {:?}", f.to_string());
 
     // 3. f = f * c_inv^p * c^{p^2}
     f = f
         * c_inv.pow(params::MODULUS.to_u64_digits())
         * c.pow(params::MODULUS.pow(2).to_u64_digits());
+    println!("3.f: {:?}", f.to_string());
 
     // 4. f = f * wi . scale f
     f = f * wi;
+    println!("4.f: {:?}", f.to_string());
 
     // 5 add lines (fixed and non-fixed)
     // 5.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
@@ -255,6 +260,7 @@ pub fn quad_miller_loop_with_c_wi(
 
     // 5.4(non-fixed) evaluation add_lin. non-fixed points: P4
     Bn254::ell(&mut f, &add_line, &P4);
+    println!("5.f: {:?}", f.to_string());
 
     // 6. add lines (fixed and non-fixed)
     // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
@@ -265,12 +271,16 @@ pub fn quad_miller_loop_with_c_wi(
     }
     // 6.2 two-time frobenius map to compute phi_Q
     //     compute phi_Q_2 with phi_Q
+    // mul_by_char: used to q's frob...map.
     let phi_Q_2 = mul_by_char::<ark_bn254::Config>(phi_Q.clone());
 
     let mut t4 = T4.clone();
     let add_line = t4.add_in_place(&phi_Q_2);
-    // 6.4(non-fixed) evaluation add_lin. non-fixed points: P4
+    println!("6.2.f: {:?}", f.to_string());
+
+    // 6.3(non-fixed) evaluation add_lin. non-fixed points: P4
     Bn254::ell(&mut f, &add_line, &P4);
+    println!("6.3.f: {:?}", f.to_string());
 
     f
 }
