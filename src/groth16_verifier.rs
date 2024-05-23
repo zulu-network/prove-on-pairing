@@ -1,13 +1,7 @@
-// Rephrased from https://github.com/arkworks-rs/algebra/blob/master/ec/src/models/bn/g2.rs#L185
-// Cannot directly obtain G2 because of visibility
-//
-// Note: BitVM::bn254::ell_coeffs also rephrased following structs
-
 use crate::lambda_residues::LambdaResidues;
-use crate::pairing_verify::quad_miller_loop_with_c_wi;
+use crate::pairing_verifier::quad_miller_loop_with_c_wi;
 use crate::params;
 use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
-use ark_ec::bn::g2::EllCoeff;
 use ark_ec::bn::{BnConfig, G2Prepared};
 use ark_ec::pairing::{MillerLoopOutput, Pairing};
 use ark_ec::{AffineRepr, CurveGroup, VariableBaseMSM};
@@ -124,7 +118,6 @@ impl Groth16Verifier {
 
         let p_pow3 = params::MODULUS.pow(3_u32);
         assert_eq!(hint, c.pow(p_pow3.to_u64_digits()));
-        println!("final_f: {:?}", final_f.to_string());
         assert_eq!(final_f, hint);
 
         Ok(true)
@@ -189,7 +182,7 @@ impl Groth16Verifier {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::groth16::gen_dummy_groth16_proof;
+    use crate::circuit::gen_dummy_groth16_proof;
     use ark_bn254::Bn254;
     use ark_ec::pairing::Pairing;
 

@@ -1,6 +1,6 @@
-use crate::miller_lines::MillerLines;
 use crate::params;
 use crate::params::MODULUS;
+use crate::poc::miller_lines::MillerLines;
 use crate::utils::biguint_to_naf;
 use ark_bn254::{Fq, Fq12, Fq2, Fq6, G1Projective, G2Projective};
 use ark_ec::{AffineRepr, CurveGroup};
@@ -298,7 +298,7 @@ impl NativeMillerLoop {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::dev;
+    use crate::poc::constants;
     use ark_bn254::{Bn254, G1Affine, G2Affine};
     use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup};
@@ -307,10 +307,10 @@ mod test {
 
     #[test]
     fn test_bn254_miller_loop() {
-        let Q = dev::g2
+        let Q = constants::g2
             .mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits())
             .into_affine();
-        let P = dev::g1
+        let P = constants::g1
             .mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits())
             .into_affine();
 
@@ -326,8 +326,8 @@ mod test {
 
     #[test]
     fn test_native_miller_loop() {
-        let Q = dev::g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
-        let P = dev::g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
+        let Q = constants::g2.mul_bigint(BigUint::from_i8(3).unwrap().to_u64_digits());
+        let P = constants::g1.mul_bigint(BigUint::from_i8(4).unwrap().to_u64_digits());
 
         println!("P:{:?}", P);
         println!("\n Q:{:?}", Q);

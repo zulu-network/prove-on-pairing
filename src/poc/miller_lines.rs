@@ -195,8 +195,8 @@ mod test {
 
     use super::*;
     use crate::{
-        dev::{g1, g2},
         params::E,
+        poc::constants::{g1, g2},
     };
 
     #[test]
