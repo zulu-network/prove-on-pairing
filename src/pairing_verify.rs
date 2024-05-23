@@ -164,11 +164,11 @@ pub fn quad_miller_loop_with_c_wi(
     assert_eq!(c * c_inv, Fq12::ONE, "Check if c·c^−1 = 1");
 
     // let P4 = eval_points[3].clone();
-    let Q4_projective: G2Projective = Q4.into_group();
+    // let Q4_projective: G2Projective = Q4.into_group();
     let mut T4 = G2HomProjective::<ark_bn254::Config> {
-        x: Q4_projective.x,
-        y: Q4_projective.y,
-        z: Q4_projective.z,
+        x: Q4.x,
+        y: Q4.y,
+        z: ark_bn254::Fq2::one(),
     };
 
     // constants

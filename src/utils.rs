@@ -24,6 +24,8 @@ fn to_naf(mut x: i128) -> Vec<i8> {
 
 use crate::params;
 use ark_bn254::{Fq12, Fq6};
+use ark_ec::bn::g2::G2HomProjective;
+use ark_ec::bn::BnConfig;
 use std::ops::Mul;
 
 pub fn fq12_to_frobenius(mut q12: Fq12) -> Fq12 {
@@ -96,5 +98,10 @@ mod test {
     //     for x in params::BETA_PI_3.deref() {
     //         println!("beta_pi_3: {:?}", x.to_string());
     //     }
+    // }
+
+    // #[test]
+    // fn test_home_projective_and_projective(){
+    //     let affine =
     // }
 }
