@@ -1,5 +1,5 @@
+use crate::groth16_pairing_verifier::quad_miller_loop_with_c_wi;
 use crate::lambda_residues::LambdaResidues;
-use crate::pairing_verifier::quad_miller_loop_with_c_wi;
 use crate::params;
 use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
 use ark_ec::bn::{BnConfig, G2Prepared};

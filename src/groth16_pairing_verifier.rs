@@ -7,6 +7,8 @@ use ark_ff::Field;
 use num_traits::One;
 use std::ops::Neg;
 
+// Groth16's pairing verifier
+//man
 // To verify e(P1,Q1)*e(P2,Q2)*e(P3,Q3)*e(P4,Q4)=1
 //
 // Here is only support to verify groth16's pairing, which (Q1,Q2,Q3) are fixed, Q4 is non-fixed.
@@ -28,10 +30,9 @@ pub fn quad_miller_loop_with_c_wi(
     c: Fq12,
     c_inv: Fq12,
     wi: Fq12,
-    // TODO: What's B in stack
 ) -> Fq12 {
-    assert_eq!(eval_points.len(), 3, "Should contains 4 G1Affine: P1,P2,P3");
-    assert_eq!(lines.len(), 3, "Only precompute lines for Q1,Q2,Q3");
+    assert_eq!(eval_points.len(), 3, "Should contains 3 G1Affine: P1,P2,P3");
+    assert_eq!(lines.len(), 3, "Only 3 precompute lines for Q1,Q2,Q3");
     assert_eq!(c * c_inv, Fq12::ONE, "Check if c·c^−1 = 1");
 
     let mut T4 = G2HomProjective::<ark_bn254::Config> {
@@ -40,7 +41,7 @@ pub fn quad_miller_loop_with_c_wi(
         z: ark_bn254::Fq2::one(),
     };
 
-    // constants
+    // constants: 1/2
     let two_inv = ark_bn254::Fq::one().double().inverse().unwrap();
 
     // 1. f = c_inv
@@ -131,7 +132,6 @@ pub fn quad_miller_loop_with_c_wi(
     // 6. add lines (fixed and non-fixed)
     // 6.1(fixed) f = f * add_line_eval. fixed points: P1, P2, P3
     for (line_i, pi) in lines_iters.iter_mut().zip(eval_points.iter()) {
-        // TODO: where is f?? and where is double line?
         let line_i_1 = line_i.next().unwrap();
         Bn254::ell(&mut f, line_i_1, pi);
     }
