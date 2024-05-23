@@ -8,7 +8,7 @@ use num_traits::One;
 use std::ops::Neg;
 
 // Groth16's pairing verifier
-//man
+//
 // To verify e(P1,Q1)*e(P2,Q2)*e(P3,Q3)*e(P4,Q4)=1
 //
 // Here is only support to verify groth16's pairing, which (Q1,Q2,Q3) are fixed, Q4 is non-fixed.

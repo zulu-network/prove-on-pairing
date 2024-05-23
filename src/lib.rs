@@ -1,4 +1,3 @@
-#[cfg(test)]
 pub mod circuit;
 pub mod groth16_pairing_verifier;
 pub mod groth16_verifier;

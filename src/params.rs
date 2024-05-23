@@ -133,6 +133,7 @@ mod test {
 
     use crate::utils::biguint_to_naf;
 
+    use ark_ec::bn::BnConfig;
     use ark_ff::PrimeField;
     use std::str::FromStr;
 
@@ -189,6 +190,8 @@ mod test {
         // Even if e_naf is different with ark_bn254::Config::ATE_LOOP_COUNT,
         // they play the same role in pairing_verifier.
         // assert_eq!(ark_bn254::Config::ATE_LOOP_COUNT, digtals_naf);
+        let ATE_LOOP_COUNT_len = ark_bn254::Config::ATE_LOOP_COUNT.len();
+        println!("ATE_LOOP_COUNT len: {:?}", ATE_LOOP_COUNT_len);
     }
 
     #[test]
