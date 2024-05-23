@@ -64,6 +64,8 @@ impl LambdaResidues {
         assert_ne!(w.pow(cofactor_cubic.to_u64_digits()), ark_bn254::Fq12::ONE);
         assert_eq!(w.pow(h.to_u64_digits()), ark_bn254::Fq12::ONE);
 
+        println!("w :{:?}", w.to_string());
+
         // just two option, w and w^2, since w^3 must be cubic residue, leading f*w^3 must not be cubic residue
         let mut wi = w;
         if (f * wi).pow(cofactor_cubic.to_u64_digits()) != ark_bn254::Fq12::ONE {
@@ -95,7 +97,17 @@ impl LambdaResidues {
         // d-th (cubic) root, say c
         let c = Self::tonelli_shanks_cubic(f3, w, s, t, k);
         assert_ne!(c, ark_bn254::Fq12::ONE);
-        assert_eq!(c.pow(params::LAMBDA.deref().to_u64_digits()), f * wi);
+        let left = c.pow(params::LAMBDA.clone().to_u64_digits());
+        let right = f * wi;
+
+        println!("c :{:?}", c.to_string());
+        println!("lambda :{:?}", params::LAMBDA.clone().to_string());
+        println!("c^lambda :{:?}", left.to_string());
+        println!("\n f :{:?}", f.to_string());
+        println!("wi :{:?}", wi.to_string());
+        println!("f*wi :{:?}", right.to_string());
+
+        assert_eq!(left, right);
 
         Self { c, wi }
     }

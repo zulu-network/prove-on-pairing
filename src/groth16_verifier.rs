@@ -77,13 +77,9 @@ impl Groth16Verifier {
         };
 
         let beta_prepared: G2Prepared<ark_bn254::Config> = (pvk.vk.beta_g2.clone().neg()).into();
-
         let gamma_g2_neg_pc = pvk.gamma_g2_neg_pc.clone();
-
         let delta_g2_neg_pc = pvk.delta_g2_neg_pc.clone();
-
         let q_prepared_lines = [gamma_g2_neg_pc, delta_g2_neg_pc, beta_prepared.clone()].to_vec();
-
         let sum_ai_abc_gamma = prepared_inputs.into_affine();
 
         let a = vec![
@@ -99,7 +95,7 @@ impl Groth16Verifier {
             proof.b.into(),
         ];
 
-        // precompute lines
+        // compute f. base line
         let qap = Bn254::multi_miller_loop(a.clone(), b.clone());
         let f = qap.0;
         // finding_c
@@ -108,6 +104,7 @@ impl Groth16Verifier {
         let c_inv = c.inverse().unwrap();
 
         let eval_points = vec![sum_ai_abc_gamma, proof.c, pvk.vk.alpha_g1];
+
         let res = quad_miller_loop_with_c_wi(
             eval_points,
             proof.a,
@@ -194,7 +191,6 @@ mod test {
     use crate::groth16::gen_dummy_groth16_proof;
     use ark_bn254::Bn254;
     use ark_ec::pairing::Pairing;
-    use ark_groth16::{prepare_verifying_key, Groth16};
 
     #[test]
     fn test_groth16_verifier_native() {
