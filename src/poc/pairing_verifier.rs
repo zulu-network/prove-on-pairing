@@ -1,24 +1,13 @@
-use ark_bn254::{fq::Fq, Bn254, Fq12, Fq2, Fq6, G1Affine, G2Affine, G2Projective};
-use ark_ec::bn::g2::{mul_by_char, G2HomProjective};
-use ark_ec::bn::{BnConfig, G2Prepared};
+use ark_bn254::{fq::Fq, Fq12, Fq2, Fq6, G1Affine};
 use ark_ec::AffineRepr;
 use ark_ff::Field;
-use ark_std::UniformRand;
 use num_bigint::BigUint;
-use num_traits::One;
-use rand::SeedableRng;
-use std::ops::{Mul, Neg};
-use std::str::FromStr;
 
-use crate::lambda_residues::LambdaResidues;
-use crate::utils::biguint_to_naf;
-use crate::{
-    params,
-    poc::{
-        miller_lines::MillerLines,
-        utils::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
-    },
+use crate::poc::{
+    miller_lines::MillerLines,
+    utils::{fq12_to_frobenius, fq12_to_frobenius_p2, fq12_to_frobenius_p3},
 };
+use crate::utils::biguint_to_naf;
 
 // To verify e(P1,Q1)=e(P2,Q2), which equal e(P1,Q1)*(P2,-Q2)=1
 //
@@ -141,12 +130,12 @@ mod test {
     use super::*;
     use std::ops::{Mul, Neg};
 
-    use ark_bn254::{Bn254, Fq12, G1Affine, G1Projective, G2Affine, G2Projective};
-    use ark_ec::pairing::{Pairing, PairingOutput};
+    use ark_bn254::{Fq12, G1Projective, G2Projective};
+    use ark_ec::pairing::Pairing;
     use ark_ec::{AffineRepr, CurveGroup, Group};
     use ark_ff::{Field, One};
     use num_bigint::BigUint;
-    use num_traits::{FromPrimitive, Zero};
+    use num_traits::FromPrimitive;
 
     use crate::lambda_residues::LambdaResidues;
     use crate::poc::optimal_ate::NativeMillerLoop;

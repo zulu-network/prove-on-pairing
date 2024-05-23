@@ -4,7 +4,7 @@ use ark_ff::Field;
 use ark_groth16::{prepare_verifying_key, Groth16};
 use ark_relations::lc;
 use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisError};
-use ark_std::{end_timer, start_timer, test_rng, UniformRand};
+use ark_std::test_rng;
 use rand::{RngCore, SeedableRng};
 
 struct MySillyCircuit<F: Field> {
@@ -74,8 +74,8 @@ pub fn gen_dummy_groth16_proof<E: Pairing>() -> (
 mod test {
     use super::*;
     use ark_bn254::Bn254;
-    use ark_ec::pairing::Pairing;
-    use ark_groth16::{prepare_verifying_key, Groth16};
+
+    use ark_groth16::Groth16;
 
     #[test]
     fn test_gen_groth16_proof() {

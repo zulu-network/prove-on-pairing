@@ -1,14 +1,11 @@
 use crate::params;
-use ark_bn254::{fq::Fq, Bn254, Fq12, Fq2, Fq6, G1Affine, G2Affine, G2Projective};
+use ark_bn254::{Bn254, Fq12, G1Affine, G2Affine};
 use ark_ec::bn::g2::{mul_by_char, G2HomProjective};
 use ark_ec::bn::{BnConfig, G2Prepared};
 use ark_ec::AffineRepr;
 use ark_ff::Field;
-use ark_std::UniformRand;
-use num_bigint::BigUint;
 use num_traits::One;
-use rand::SeedableRng;
-use std::ops::{Mul, Neg};
+use std::ops::Neg;
 
 // To verify e(P1,Q1)*e(P2,Q2)*e(P3,Q3)*e(P4,Q4)=1
 //

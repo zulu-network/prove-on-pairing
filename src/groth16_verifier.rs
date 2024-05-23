@@ -5,14 +5,13 @@ use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
 use ark_ec::bn::{BnConfig, G2Prepared};
 use ark_ec::pairing::{MillerLoopOutput, Pairing};
 use ark_ec::{AffineRepr, CurveGroup, VariableBaseMSM};
-use ark_ff::{CyclotomicMultSubgroup, Field, PrimeField};
+use ark_ff::{CyclotomicMultSubgroup, Field};
 use ark_groth16::{Groth16, PreparedVerifyingKey, Proof};
-use ark_relations::r1cs::{Result as R1CSResult, SynthesisError};
+use ark_relations::r1cs::Result as R1CSResult;
 use ark_std::cfg_chunks_mut;
 use itertools::Itertools;
-use num_bigint::BigUint;
 use num_traits::One;
-use std::ops::{AddAssign, Neg};
+use std::ops::Neg;
 
 // Only support Bn254 for now.
 pub struct Groth16Verifier;
@@ -43,7 +42,7 @@ impl Groth16Verifier {
     ) -> R1CSResult<G1Projective> {
         assert_eq!(public_inputs.len() + 1, pvk.vk.gamma_abc_g1.len());
         // g_ic = pvk.vk.gamma_abc_g1[0] + msm(pvk.vk.gamma_abc_g1[1..], public_inputs)
-        let mut g_ic = pvk.vk.gamma_abc_g1[0].into_group();
+        let g_ic = pvk.vk.gamma_abc_g1[0].into_group();
 
         // msm(pvk.vk.gamma_abc_g1[1..], public_inputs)
         // for (i, b) in public_inputs.iter().zip(pvk.vk.gamma_abc_g1.iter().skip(1)) {
@@ -184,7 +183,6 @@ mod test {
     use super::*;
     use crate::circuit::gen_dummy_groth16_proof;
     use ark_bn254::Bn254;
-    use ark_ec::pairing::Pairing;
 
     #[test]
     fn test_groth16_verifier_native() {

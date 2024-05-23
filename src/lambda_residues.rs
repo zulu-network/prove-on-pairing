@@ -8,7 +8,6 @@ use num_traits::{One, ToPrimitive};
 use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use std::ops::Deref;
-use std::str::FromStr;
 
 // c and wi,
 // satisfying c^lambda = f * wi
@@ -151,7 +150,7 @@ impl LambdaResidues {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::params::{LAMBDA, MODULUS};
+    use crate::params::MODULUS;
     use std::ops::Deref;
 
     use ark_ff::{Field, One};
@@ -159,10 +158,7 @@ mod test {
     use num_bigint::BigUint;
 
     use crate::params;
-    use ark_bn254::{Bn254, G1Affine, G2Affine};
-    use ark_ec::pairing::Pairing;
-    use ark_ec::{AffineRepr, CurveGroup};
-    use num_traits::FromPrimitive;
+
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
 

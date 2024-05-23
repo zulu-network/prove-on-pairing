@@ -132,7 +132,7 @@ mod test {
     use super::*;
 
     use crate::utils::biguint_to_naf;
-    use ark_ec::bn::BnConfig;
+
     use ark_ff::PrimeField;
     use std::str::FromStr;
 

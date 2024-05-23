@@ -1,6 +1,5 @@
-use ark_ff::One;
 use num_bigint::BigUint;
-use num_traits::{FromPrimitive, ToPrimitive};
+use num_traits::ToPrimitive;
 
 pub fn biguint_to_naf(num: BigUint) -> Vec<i8> {
     to_naf(num.to_i128().unwrap())
@@ -24,7 +23,6 @@ fn to_naf(mut x: i128) -> Vec<i8> {
 
 use crate::params;
 use ark_bn254::{Fq12, Fq6};
-use ark_ec::bn::BnConfig;
 use std::ops::Mul;
 
 pub fn fq12_to_frobenius(mut q12: Fq12) -> Fq12 {
@@ -66,9 +64,7 @@ pub fn fq12_to_frobenius_p3(mut q12: Fq12) -> Fq12 {
 mod test {
     use super::*;
     use crate::params;
-    use ark_bn254::{G1Affine, G2Affine};
-    use ark_ec::AffineRepr;
-    use ark_std::{test_rng, UniformRand};
+
     use std::ops::Deref;
 
     #[test]
