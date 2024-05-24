@@ -1,16 +1,13 @@
-use crate::groth16_pairing_verifier::quad_miller_loop_with_c_wi;
 use crate::lambda_residues::LambdaResidues;
+use crate::pairing_verifier::quad_miller_loop_with_c_wi;
 use crate::params;
-use ark_bn254::{Bn254, Fq12, Fr, G1Affine, G1Projective};
+use ark_bn254::{Bn254, Fr, G1Affine, G1Projective};
 use ark_ec::bn::{BnConfig, G2Prepared};
-use ark_ec::pairing::{MillerLoopOutput, Pairing};
+use ark_ec::pairing::Pairing;
 use ark_ec::{AffineRepr, CurveGroup, VariableBaseMSM};
-use ark_ff::{CyclotomicMultSubgroup, Field};
-use ark_groth16::{Groth16, PreparedVerifyingKey, Proof};
+use ark_ff::Field;
+use ark_groth16::{PreparedVerifyingKey, Proof};
 use ark_relations::r1cs::Result as R1CSResult;
-use ark_std::cfg_chunks_mut;
-use itertools::Itertools;
-use num_traits::One;
 use std::ops::Neg;
 
 // Only support Bn254 for now.
@@ -119,6 +116,7 @@ mod test {
     use super::*;
     use crate::dummy_circuit::gen_groth16_dummy_circuit_proof;
     use ark_bn254::Bn254;
+    use ark_groth16::Groth16;
 
     #[test]
     fn test_groth16_verifier() {
