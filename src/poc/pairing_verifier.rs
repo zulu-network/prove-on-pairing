@@ -181,12 +181,12 @@ mod test {
         let f2 =
             NativeMillerLoop::miller_loop(G1Projective::from(p2), G2Projective::from(q2).neg());
 
-        println!("f1: {:?}", f1.to_string());
-        println!("f2: {:?}", f2.to_string());
+        // println!("f1: {:?}", f1.to_string());
+        // println!("f2: {:?}", f2.to_string());
         // 2.3 precompute c,wi
         let witness = LambdaResidues::finding_c(f1.mul(f2));
         let c_inv = witness.c.inverse().unwrap();
-        println!("c_inv: {:?}", c_inv.to_string());
+        // println!("c_inv: {:?}", c_inv.to_string());
         // ====================================
         // ===== 2.Prover compute following data.
         // ====================================

@@ -17,15 +17,6 @@ use std::ops::Neg;
 pub struct Groth16Verifier;
 
 impl Groth16Verifier {
-    // Porting from ark_groth16::Groth16::verify_proof
-    pub fn verify_proof(
-        pvk: &PreparedVerifyingKey<Bn254>,
-        proof: &Proof<Bn254>,
-        public_inputs: &[Fr],
-    ) -> R1CSResult<bool> {
-        let prepared_inputs = Self::prepare_inputs(pvk, public_inputs)?;
-        Groth16::<Bn254>::verify_proof_with_prepared_inputs(pvk, proof, &prepared_inputs)
-    }
     pub fn verify_proof_with_c_wi(
         pvk: &PreparedVerifyingKey<Bn254>,
         proof: &Proof<Bn254>,
@@ -116,87 +107,35 @@ impl Groth16Verifier {
         };
 
         let p_pow3 = params::MODULUS.pow(3_u32);
-        assert_eq!(hint, c.pow(p_pow3.to_u64_digits()));
-        assert_eq!(final_f, hint);
+        assert_eq!(hint, c.pow(p_pow3.to_u64_digits()), "hint is wrong");
+        assert_eq!(final_f, hint, "final_f not equal hint");
 
         Ok(true)
-    }
-
-    // porting from Bn254::multi_miller_loop
-    pub fn multi_miller_loop(
-        a: Vec<<Bn254 as Pairing>::G1Prepared>,
-        b: Vec<<Bn254 as Pairing>::G2Prepared>,
-    ) -> MillerLoopOutput<Bn254> {
-        let mut pairs = a
-            .into_iter()
-            .zip_eq(b)
-            .filter_map(|(p, q)| {
-                // let (p, q) = (p.into(), q.into());
-                match !p.is_zero() && !q.is_zero() {
-                    true => Some((p, q.ell_coeffs.into_iter())),
-                    false => None,
-                }
-            })
-            .collect::<Vec<_>>();
-
-        let mut f = cfg_chunks_mut!(pairs, 4)
-            .map(|pairs| {
-                let mut f = Fq12::one();
-                for i in (1..ark_bn254::Config::ATE_LOOP_COUNT.len()).rev() {
-                    if i != ark_bn254::Config::ATE_LOOP_COUNT.len() - 1 {
-                        f.square_in_place();
-                    }
-
-                    for (p, coeffs) in pairs.iter_mut() {
-                        Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
-                    }
-
-                    let bit = ark_bn254::Config::ATE_LOOP_COUNT[i - 1];
-                    if bit == 1 || bit == -1 {
-                        for (p, coeffs) in pairs.iter_mut() {
-                            Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
-                        }
-                    }
-                }
-                f
-            })
-            .product::<Fq12>();
-
-        if ark_bn254::Config::X_IS_NEGATIVE {
-            f.cyclotomic_inverse_in_place();
-        }
-
-        for (p, coeffs) in &mut pairs {
-            Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
-        }
-
-        for (p, coeffs) in &mut pairs {
-            Bn254::ell(&mut f, &coeffs.next().unwrap(), &p.0);
-        }
-
-        MillerLoopOutput(f)
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::circuit::gen_dummy_groth16_proof;
+    use crate::dummy_circuit::gen_groth16_dummy_circuit_proof;
     use ark_bn254::Bn254;
 
     #[test]
-    fn test_groth16_verifier_native() {
+    fn test_groth16_verifier() {
         type E = Bn254;
 
-        let (proof, pvk, pi) = gen_dummy_groth16_proof::<E>();
-        assert!(Groth16Verifier::verify_proof(&pvk, &proof, &pi).unwrap());
-    }
+        let k = 6;
 
-    #[test]
-    fn test_groth16_verifier_with_c_wi() {
-        type E = Bn254;
+        // 1. gen proof
+        let (proof, pvk, pi) = gen_groth16_dummy_circuit_proof::<E>(k);
 
-        let (proof, pvk, pi) = gen_dummy_groth16_proof::<E>();
+        // 2. verify with native verifier
+        assert!(
+            Groth16::<E>::verify_proof(&pvk, &proof, &pi).unwrap(),
+            "native verifier can't pass"
+        );
+
+        // 3. verifier with new one
         assert!(Groth16Verifier::verify_proof_with_c_wi(&pvk, &proof, &pi).unwrap());
     }
 }

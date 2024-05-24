@@ -1,4 +1,4 @@
-pub mod circuit;
+pub mod dummy_circuit;
 pub mod groth16_pairing_verifier;
 pub mod groth16_verifier;
 pub mod lambda_residues;
